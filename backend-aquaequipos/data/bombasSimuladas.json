@@ -1,0 +1,77 @@
+[
+  {
+    "nombre": "Bomba ESPA 1.5 HP",
+    "url": "https://aquaequipos.com/tienda/producto/bomba-espa-1-5hp",
+    "categoria": "superficie",
+    "aplicaciones": ["cisterna a tanque elevado", "cisterna a hidroneumatico"],
+    "altura_min": 8,
+    "altura_max": 25,
+    "altura_segura_min": 12,
+    "altura_segura_max": 20,
+    "voltaje": "230V",
+    "caudal_maximo_lmin": 110,
+    "caudal_seguro_min": 60,
+    "caudal_seguro_max": 95
+  },
+  {
+    "nombre": "Bomba Pedrollo 1 HP",
+    "url": "https://aquaequipos.com/tienda/producto/bomba-pedrollo-1hp",
+    "categoria": "superficie",
+    "aplicaciones": ["cisterna a tanque elevado"],
+    "altura_min": 6,
+    "altura_max": 18,
+    "altura_segura_min": 9,
+    "altura_segura_max": 15,
+    "voltaje": "110V",
+    "caudal_maximo_lmin": 90,
+    "caudal_seguro_min": 50,
+    "caudal_seguro_max": 80
+  },
+  {
+    "nombre": "Bomba Evans 2 HP Sumergible",
+    "url": "https://aquaequipos.com/tienda/producto/bomba-evans-2hp",
+    "categoria": "sumergible",
+    "aplicaciones": ["pozo a tanque elevado", "pozo a hidroneumatico"],
+    "altura_min": 15,
+    "altura_max": 35,
+    "altura_segura_min": 18,
+    "altura_segura_max": 30,
+    "voltaje": "230V",
+    "caudal_maximo_lmin": 160,
+    "caudal_seguro_min": 90,
+    "caudal_seguro_max": 140
+  },
+
+  {
+    "nombre": "Bomba Pedrollo 1.5 HP Sumergible",
+    "url": "...",
+    "categoria": "sumergible",
+    "aplicaciones": ["pozo a hidroneumatico"],
+    "voltaje": "230V",
+    "fase": "monofasico",
+    "caudal_seguro_min": 70,
+    "caudal_seguro_max": 110,
+    "caudal_maximo_lmin": 120,
+    "altura_min": 10,
+    "altura_max": 50,
+    "altura_segura_min": 25,
+    "altura_segura_max": 40
+  },
+  
+
+  {
+    "nombre": "Bomba Evans 2HP Pozo-Hidro",
+    "aplicaciones": ["pozo_hidroneumatico"],
+    "voltaje": "230V",
+    "fase": "monofasico",
+    "categoria": "sumergible",
+    "caudal_seguro_min": 55,
+    "caudal_seguro_max": 65,
+    "caudal_maximo_lmin": 80,
+    "altura_segura_min": 35,
+    "altura_segura_max": 42,
+    "altura_max": 50,
+    "url": "https://aquaequipos.com/tienda/producto/bomba-evans-2hp"
+  }
+  
+]

@@ -1,0 +1,103 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2821
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica-Bold;\f1\fswiss\fcharset0 Helvetica;\f2\fswiss\fcharset0 Helvetica-BoldOblique;
+}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\b\fs24 \cf0 Pruebas API Backend\
+
+\f1\b0 \
+
+\f2\i\b URL:
+\f1\i0\b0  http://localhost:3000/api/asesoria\
+\
+
+\f2\i\b \ul Prueba 1:
+\f1\i0\b0 \ulnone  Validar un requerimiento de usuario que excede el caudal que proporcionan las bombas del sistema, en este caso no deber\'edan haber resultados ya que no hay bomba que de ese caudal. \
+\
+\{\
+  "aplicacion": "pozo a hidroneumatico",\
+  "voltaje": "230V",\
+  "altura_vertical": 25,\
+  "longitud_tuberia": 15,\
+  "numero_codos": 2,\
+  "diametro_tuberia": 2.5,\
+  "caudal_manual_lmin": 2400\
+\}\
+\
+
+\f2\i\b \ul \
+Prueba 2: 
+\f1\i0\b0 \ulnone Se simula que los datos ingresados por el usuario se ajustan a las caracter\'edstica de una de las bombas del sistema en este caso a la Pedrollo de 1 HP \
+\
+\{\
+  "aplicacion": "cisterna a tanque elevado",\
+  "voltaje": "110V",\
+  "altura_vertical": 10,\
+  "longitud_tuberia": 8,\
+  "numero_codos": 2,\
+  "diametro_tuberia": 2.5,\
+  "dimensiones_tanque": \{\
+    "forma": "rectangular",\
+    "largo": 1.2,\
+    "ancho": 1.0,\
+    "altura": 1.0\
+  \},\
+  "tiempo_deseado_minutos": 15\
+\}\
+\
+\
+
+\f2\i\b \ul Prueba 3:
+\f1\i0\b0 \ulnone  El usuario o el sistema env\'eda un voltaje que no es valido para evaluar. As\'ed que debiera marcar un error y notificarle al usuario.\
+\{\
+  "aplicacion": "cisterna a tanque elevado",\
+  "voltaje": "200V",\
+  "altura_vertical": 10,\
+  "longitud_tuberia": 10,\
+  "numero_codos": 2,\
+  "diametro_tuberia": 2.5,\
+  "caudal_manual_lmin": 60\
+\}\
+\
+\
+
+\f2\i\b \ul \
+Prueba 4:
+\f1\i0\b0 \ulnone  aqu\'ed probamos que recomiende una bomba a partir de calcular el caudal \
+\
+\{\
+  "aplicacion": "pozo a hidroneumatico",\
+  "voltaje": "230V",\
+  "altura_vertical": 18,\
+  "longitud_tuberia": 20,\
+  "numero_codos": 4,\
+  "diametro_tuberia": 3,\
+  "dimensiones_tanque": \{\
+    "forma": "rectangular",\
+    "largo": 2,\
+    "ancho": 1.5,\
+    "altura": 1\
+  \},\
+  "tiempo_deseado_minutos": 20\
+\}\
+\
+
+\f2\i\b \ul \
+Prueba 5: 
+\f1\i0\b0 \ulnone aqui se ingreso directamente el caudal sin necesidad de calcularlo
+\f2\i\b \ul \
+ 
+\f1\i0\b0 \ulnone \{\
+  "aplicacion": "cisterna a tanque elevado",\
+  "voltaje": "230V",\
+  "altura_vertical": 9,\
+  "longitud_tuberia": 12,\
+  "numero_codos": 1,\
+  "diametro_tuberia": 2,\
+  "caudal_manual_lmin": 50\
+\}\
+\
+}
