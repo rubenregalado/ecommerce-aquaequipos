@@ -1,12 +1,13 @@
 require('dotenv').config();
-const WooCommerceRestApi = require("@woocommerce/woocommerce-rest-api").default;
+const axios = require('axios');
 
-const api = new WooCommerceRestApi({
-  url: process.env.WOOCOMMERCE_URL,
-  consumerKey: process.env.WOOCOMMERCE_CONSUMER_KEY,
-  consumerSecret: process.env.WOOCOMMERCE_CONSUMER_SECRET,
-  version: "wc/v3"
+// Configuración del cliente WooCommerce usando Axios
+const WooCommerceApi = axios.create({
+  baseURL: `${process.env.WOOCOMMERCE_URL}/wp-json/wc/v3/`,
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json'
+  }
 });
 
-module.exports = api;
-
+module.exports = WooCommerceApi;

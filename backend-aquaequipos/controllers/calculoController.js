@@ -14,9 +14,35 @@ function calcularCaudalEstimado({ largo, ancho, altura, tiempo_deseado_minutos }
   return parseFloat((litros / tiempo_deseado_minutos).toFixed(2));
 }
 
-// 🔤 Normalizador de texto para eliminar acentos y convertir a minúsculas
 function normalizarTexto(str) {
   return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
+
+// ✅ Nueva función que usa axios con autenticación por query string
+async function obtenerTodosLosProductos() {
+  const productos = [];
+  let page = 1;
+
+  const authParams = {
+    consumer_key: process.env.WOOCOMMERCE_CONSUMER_KEY,
+    consumer_secret: process.env.WOOCOMMERCE_CONSUMER_SECRET
+  };
+
+  while (true) {
+    const { data } = await WooCommerceApi.get("products", {
+      params: {
+        ...authParams,
+        per_page: 100,
+        page
+      }
+    });
+
+    productos.push(...data);
+    if (data.length < 100) break;
+    page++;
+  }
+
+  return productos;
 }
 
 async function asesoriaTecnica(req, res) {
@@ -35,7 +61,6 @@ async function asesoriaTecnica(req, res) {
 
   const error = (msg) => res.status(400).json({ status: "error", error: msg });
 
-  // Validaciones básicas
   const fases_validas = ["monofasico", "trifasico"];
   const voltajes_validos = ["110V", "115V", "220V", "230V", "380V", "24V"];
   if (!fases_validas.includes(normalizarTexto(fase))) return error("Fase no válida");
@@ -53,8 +78,13 @@ async function asesoriaTecnica(req, res) {
   }
 
   try {
-    const respuesta = await WooCommerceApi.get("products");
-    const productos = respuesta.data;
+    const productos = await obtenerTodosLosProductos();
+    console.log(`📦 Total de productos recibidos: ${productos.length}`);
+
+    productos.forEach(p => {
+      console.log(`→ ${p.name}`);
+      console.log(p.attributes);
+    });
 
     const bombas = productos.map(p => {
       const atributos = parseAtributosWoo(p.attributes);
@@ -66,69 +96,83 @@ async function asesoriaTecnica(req, res) {
       };
     });
 
-    // ✅ Depuración
-    console.log("💧 Aplicaciones por bomba:");
-    bombas.forEach(b =>
-      console.log(`→ ${b.nombre}: ${JSON.stringify(b.aplicaciones)}, voltaje: ${b.voltaje}, fase: ${b.fase}`)
-    );
+    const bombasValidas = bombas.filter(b => {
+      const completas = b.aplicaciones && b.voltaje && b.fase;
+      if (!completas) {
+        console.warn(`🚫 Bomba con atributos incompletos: ${b.nombre}`);
+      }
+      return completas;
+    });
+
+    console.log("💧 Bombas válidas encontradas:", bombasValidas.length);
     console.log("👉 Aplicación solicitada:", aplicacion);
     console.log("👉 Voltaje solicitado:", voltaje);
     console.log("👉 Fase solicitada:", fase);
 
-    const resultados_crudos = bombas
-      .filter(b =>
-        b.aplicaciones?.includes(aplicacion) &&
-        b.voltaje === voltaje &&
-        normalizarTexto(b.fase) === normalizarTexto(fase)
-      )
-      .map(bomba => {
-        let estado = "";
-        let prioridad = 3;
+    const bombasCoincidentes = bombasValidas.filter(b =>
+      b.aplicaciones.includes(aplicacion) &&
+      b.voltaje === voltaje &&
+      normalizarTexto(b.fase) === normalizarTexto(fase)
+    );
 
-        const caudalCumpleIdeal = caudal_estimado >= bomba.caudal_seguro_min && caudal_estimado <= bomba.caudal_seguro_max;
-        const caudalCumpleMaximo = caudal_estimado <= bomba.caudal_maximo_lmin;
+    const bombasDeRespaldo = bombasValidas.filter(b =>
+      b.voltaje === voltaje &&
+      normalizarTexto(b.fase) === normalizarTexto(fase)
+    );
 
-        if (!caudalCumpleMaximo) {
-          estado = "❌ No cumple con el caudal requerido";
-        } else if (caudalCumpleIdeal && cdt >= bomba.altura_segura_min && cdt <= bomba.altura_segura_max) {
-          estado = "✅ Dentro del rango ideal de operación";
-          prioridad = 1;
-        } else if (cdt >= bomba.altura_min && cdt <= bomba.altura_max) {
-          estado = "⚠️ Funciona, pero fuera del rango ideal";
-          prioridad = 2;
-        } else {
-          estado = "❌ No compatible con esta bomba";
-        }
+    const bombasUsadas = bombasCoincidentes.length > 0 ? bombasCoincidentes : bombasDeRespaldo;
+    const tipoRecomendacion = bombasCoincidentes.length > 0 ? "coincidentes" : "de respaldo";
 
-        const caudal_optimo = Math.round((bomba.caudal_seguro_min + bomba.caudal_seguro_max) / 2);
-        const altura_optima = Math.round((bomba.altura_segura_min + bomba.altura_segura_max) / 2);
+    const resultados_crudos = bombasUsadas.map(bomba => {
+      let estado = "";
+      let prioridad = 3;
 
-        return {
-          nombre: bomba.nombre,
-          url: bomba.url,
-          categoria: bomba.categoria,
-          estado,
-          prioridad,
-          rendimiento_sugerido: {
-            caudal_aproximado_lmin: caudal_optimo,
-            altura_aproximada_m: altura_optima,
-          },
-          nota_tecnica: `Tu requerimiento fue de ${caudal_estimado} L/min a ${cdt} m.`
-        };
-      });
+      const caudalCumpleIdeal = caudal_estimado >= bomba.caudal_seguro_min && caudal_estimado <= bomba.caudal_seguro_max;
+      const caudalCumpleMaximo = caudal_estimado <= bomba.caudal_maximo_lmin;
 
-    console.log("💡 Bombas que pasaron el filtro:", resultados_crudos.length);
+      if (!caudalCumpleMaximo) {
+        estado = "❌ No cumple con el caudal requerido";
+      } else if (caudalCumpleIdeal && cdt >= bomba.altura_segura_min && cdt <= bomba.altura_segura_max) {
+        estado = "✅ Dentro del rango ideal de operación";
+        prioridad = 1;
+      } else if (cdt >= bomba.altura_min && cdt <= bomba.altura_max) {
+        estado = "⚠️ Funciona, pero fuera del rango ideal";
+        prioridad = 2;
+      } else {
+        estado = "❌ No compatible con esta bomba";
+      }
 
-    const resultados_ordenados = resultados_crudos.filter(b => b.prioridad <= 2).sort((a, b) => a.prioridad - b.prioridad);
+      const caudal_optimo = Math.round((bomba.caudal_seguro_min + bomba.caudal_seguro_max) / 2);
+      const altura_optima = Math.round((bomba.altura_segura_min + bomba.altura_segura_max) / 2);
+
+      return {
+        nombre: bomba.nombre,
+        url: bomba.url,
+        categoria: bomba.categoria,
+        estado,
+        prioridad,
+        rendimiento_sugerido: {
+          caudal_aproximado_lmin: caudal_optimo,
+          altura_aproximada_m: altura_optima,
+        },
+        nota_tecnica: `Tu requerimiento fue de ${caudal_estimado} L/min a ${cdt} m.`
+      };
+    });
+
+    const resultados_ordenados = resultados_crudos
+      .filter(r => r.prioridad <= 2)
+      .sort((a, b) => a.prioridad - b.prioridad);
 
     res.json({
       status: "ok",
       aplicacion,
       fase,
       voltaje,
+      tipo_recomendacion: tipoRecomendacion,
       CDT_calculada: cdt,
       caudal_estimado,
-      resultados: resultados_ordenados.slice(0, 4)
+      resultados: resultados_ordenados.slice(0, 4),
+      bombas_totales_evaluadas: bombasUsadas.length,
     });
 
   } catch (e) {
