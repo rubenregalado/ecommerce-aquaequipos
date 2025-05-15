@@ -2,9 +2,12 @@
   import jsPDF from 'jspdf';
   import ModalCalculoFlujo from '$lib/components/ModalCalculoFlujo.svelte';
   import ModalPerdidaFriccion from '$lib/components/ModalPerdidaFriccion.svelte';
+  import ModalCalculoCaudal from '$lib/components/ModalCalculoCaudal.svelte';
 
   let mostrarModalFriccion = false;
   let mostrarModalFlujo = false;
+  let mostrarModalCaudalDimensiones = false;
+
   let aplicacion = "";
   let fase = "";
   let voltaje = "";
@@ -13,11 +16,10 @@
   let numero_codos = 0;
   let diametro_tuberia_pulgadas = "";
   let caudal_manual = 0;
-  let calcular_caudal = false;
-  let largo = 0;
-  let ancho = 0;
-  let altura = 0;
-  let tiempo_llenado = 0;
+
+  // Para cálculo por dimensiones
+  let dimensiones = { altura: 0, ancho: 0, largo: 0, tiempo: 0 };
+
   let cargando = false;
   let resultados: any = null;
   let error = "";
@@ -35,18 +37,16 @@
       altura_vertical: parseFloat(altura_vertical.toString()),
       longitud_tuberia: parseFloat(longitud_tuberia.toString()),
       numero_codos: parseInt(numero_codos.toString()),
-      diametro_tuberia: parseFloat(diametro_tuberia_pulgadas)
+      diametro_tuberia: parseFloat(diametro_tuberia_pulgadas),
+      caudal_manual_lmin: parseFloat(caudal_manual.toString())
     };
 
-    if (!calcular_caudal) {
-      payload.caudal_manual_lmin = parseFloat(caudal_manual.toString());
-    } else {
-      payload.tiempo_deseado_minutos = parseFloat(tiempo_llenado.toString());
-      payload.dimensiones_tanque = {
-        largo: parseFloat(largo.toString()),
-        ancho: parseFloat(ancho.toString()),
-        altura: parseFloat(altura.toString())
-      };
+    // Si se usó el cálculo por dimensiones, enviamos también las dimensiones
+    if (
+      (aplicacion === 'cisterna_tanque' || aplicacion === 'pozo_tanque') &&
+      dimensiones.altura && dimensiones.ancho && dimensiones.largo && dimensiones.tiempo
+    ) {
+      payload.dimensiones_tanque = { ...dimensiones };
     }
 
     try {
@@ -69,9 +69,16 @@
       cargando = false;
     }
   }
-  
-  function asignarCaudalDesdeModal(gpm: number) { //Funcion ASIGNARCAUDAL
-  caudal_manual = gpm;
+
+  // Para ModalCalculoFlujo (hidroneumático) - recibe GPM, lo convierte a L/min
+  function asignarCaudalDesdeModal(gpm: number) {
+    caudal_manual = Math.round(gpm * 3.78541); // 1 GPM ≈ 3.78541 L/min
+  }
+
+  // Para Modal de dimensiones (tanque elevado)
+  function asignarCaudalDesdeDimensiones(caudal: number, dims: { altura: number; ancho: number; largo: number; tiempo: number }) {
+    caudal_manual = Math.round(caudal);
+    dimensiones = dims;
   }
 
   function descargarPDF() {
@@ -101,7 +108,6 @@
 
       doc.text(`Nota técnica: ${bomba.nota_tecnica}`, 12, y);
       y += 5;
-
       doc.text(`Rendimiento: ${bomba.rendimiento_sugerido.caudal_aproximado_lmin} L/min a ${bomba.rendimiento_sugerido.altura_aproximada_m} m`, 12, y);
       y += 5;
 
@@ -123,6 +129,26 @@
   }
 </script>
 
+<!-- MODAL DE CÁLCULO DE CAUDAL POR DIMENSIONES -->
+<ModalCalculoCaudal
+  mostrar={mostrarModalCaudalDimensiones}
+  onClose={() => mostrarModalCaudalDimensiones = false}
+  onCalcular={asignarCaudalDesdeDimensiones}
+/>
+
+<!-- MODAL DE CÁLCULO DE FLUJO -->
+<ModalCalculoFlujo
+  mostrar={mostrarModalFlujo}
+  onClose={() => mostrarModalFlujo = false}
+  onCalcular={asignarCaudalDesdeModal}
+/>
+
+<!-- MODAL DE PÉRDIDA DE FRICCIÓN -->
+<ModalPerdidaFriccion
+  mostrar={mostrarModalFriccion}
+  onClose={() => mostrarModalFriccion = false}
+/>
+
 <main class="min-h-screen bg-gray-50 p-6">
   <div class="max-w-xl mx-auto bg-white shadow-lg rounded-lg p-6 space-y-6 border border-blue-100">
     <div class="flex justify-center">
@@ -132,7 +158,16 @@
 
     <form class="space-y-4" on:submit={enviarFormulario}>
       <div>
-        <label class="block font-medium mb-1 text-gray-700">Aplicación</label>
+        <label class="block font-medium mb-1 text-gray-700 flex items-center gap-2">
+          Aplicación
+          <span class="relative group cursor-pointer">
+            <span class="w-5 h-5 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center">?</span>
+            <div class="absolute z-10 w-64 text-sm text-white bg-gray-700 rounded p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 -top-2 left-6">
+              ¿Qué trabajo necesita que realice el equipo de bombeo? Esto ayuda a elegir la bomba adecuada: por ejemplo, 
+              si es para llenar un tanque desde una cisterna o extraer agua de un pozo con presión.
+            </div>
+          </span>
+        </label>
         <select bind:value={aplicacion} required class="w-full border rounded px-3 py-2">
           <option value="" disabled selected>Seleccione una opción</option>
           <option value="cisterna_tanque">Cisterna con tanque elevado</option>
@@ -144,7 +179,19 @@
 
       {#if aplicacion}
       <div>
-        <label class="block font-medium mb-1 text-gray-700">Fase eléctrica</label>
+        <label class="block font-medium mb-1 text-gray-700 flex items-center gap-2">
+          Fase eléctrica
+          <span class="relative group cursor-pointer">
+            <span class="w-5 h-5 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center">?</span>
+            <div class="absolute z-10 w-64 text-sm text-white bg-gray-700 rounded p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 -top-2 left-6">
+              ¿Qué tipo de energía utilizará la bomba? 
+              La fase eléctrica depende del tipo de instalación: uso en casa, industrial o uso de paneles solares.
+              <br/>• Monofásico: común en casas. 
+              <br/>• Trifásico: usado en industrias. 
+              <br/>• Solar: si usará paneles solares.
+            </div>
+          </span>
+        </label>
         <select bind:value={fase} required class="w-full border rounded px-3 py-2">
           <option value="" disabled selected>Seleccione la fase</option>
           <option value="monofasico">Monofásico</option>
@@ -157,31 +204,45 @@
       {#if fase}
       <div>
         <label class="block font-medium mb-1 text-gray-700">Voltaje</label>
+        <div>
+          <label class="block font-medium mb-1 text-gray-700 flex items-center gap-2">
+            ¿Qué tipo de voltaje necesita la bomba?
+            <span class="relative group cursor-pointer">
+              <span class="w-5 h-5 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center">?</span>
+              <div class="absolute z-10 w-64 text-sm text-white bg-gray-700 rounded p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 -top-2 left-6">
+                El voltaje depende del tipo de conexión eléctrica disponible:
+                <br/>• 110V y 220V: comunes en casas.
+                <br/>• 220V y 480V: para industrias.
+                <br/>• 12V / 24V / Inversor: si usa energía solar.
+              </div>
+            </span>
+          </label>
           <select bind:value={voltaje} required class="w-full border rounded px-3 py-2">
-      <option value="" disabled selected>Seleccione el voltaje</option>
-      {#if fase === 'monofasico'}
-        <option value="110V">110V</option>
-        <option value="220V">220V</option>
-      {:else if fase === 'trifasico'}
-        <option value="220V">220V</option>
-        <option value="480V">480V</option>
-      {:else if fase === 'solar'}
-        <option value="12V">12V</option>
-      {/if}
-    </select>
-
-{#if aplicacion?.toLowerCase().includes('hidroneumatico') && voltaje}
-  <div class="flex justify-end mt-2">
-    <button
-      type="button"
-      on:click={() => mostrarModalFriccion = true}
-      class="bg-indigo-600 text-white font-bold py-2 px-4 rounded hover:bg-indigo-700 transition"
-    >
-      Calcular pérdida por fricción
-    </button>
-  </div>
-{/if}
-
+            <option value="" disabled selected>Seleccione el voltaje</option>
+            {#if fase === 'monofasico'}
+              <option value="110V">110V</option>
+              <option value="220V">220V</option>
+            {:else if fase === 'trifasico'}
+              <option value="220V">220V</option>
+              <option value="480V">480V</option>
+            {:else if fase === 'solar'}
+              <option value="12V">12V</option>
+              <option value="24V">24V</option>
+              <option value="Inversor">Inversor</option>
+            {/if}
+          </select>
+        </div>
+        {#if aplicacion?.toLowerCase().includes('hidroneumatico') && voltaje}
+        <div class="flex justify-end mt-2">
+          <button
+            type="button"
+            on:click={() => mostrarModalFriccion = true}
+            class="bg-indigo-600 text-white font-bold py-2 px-4 rounded hover:bg-indigo-700 transition"
+          >
+            Calcular pérdida por fricción
+          </button>
+        </div>
+        {/if}
       </div>
       {/if}
 
@@ -225,33 +286,45 @@
       {/if}
 
       {#if diametro_tuberia_pulgadas}
-      <div class="space-y-2">
-        <label class="block font-medium text-gray-700">¿Conoce el caudal requerido?</label>
-        <label class="inline-flex items-center">
-          <input type="checkbox" bind:checked={calcular_caudal} class="mr-2" />
-          No lo sé, deseo calcularlo
-        </label>
-
-        {#if !calcular_caudal}
-          <div class="flex items-center space-x-2">
-            <input type="number" bind:value={caudal_manual} class="border rounded px-3 py-2 w-full" placeholder="Ingrese el caudal en L/min" />
-            {#if aplicacion.toLowerCase().includes("hidroneumatico")}
-              <button type="button" on:click={() => mostrarModalFlujo = true} class="bg-gray-700 text-white font-bold px-3 py-2 rounded hover:bg-gray-800">
+        {#if aplicacion === 'cisterna_tanque' || aplicacion === 'pozo_tanque'}
+          <div class="space-y-2">
+            <label class="block font-medium text-gray-700 mb-1">Caudal requerido (L/min)</label>
+            <div class="flex items-center space-x-2">
+              <input
+                type="number"
+                bind:value={caudal_manual}
+                class="border rounded px-3 py-2 w-full"
+                placeholder="Ingrese el caudal en L/min o calcúlelo"
+              />
+              <button
+                type="button"
+                on:click={() => mostrarModalCaudalDimensiones = true}
+                class="bg-gray-700 text-white font-bold px-3 py-2 rounded hover:bg-gray-800"
+              >
+                Calcular Caudal
+              </button>
+            </div>
+          </div>
+        {:else if aplicacion === 'pozo_hidroneumatico' || aplicacion === 'cisterna_hidroneumatico'}
+          <div class="space-y-2">
+            <label class="block font-medium text-gray-700 mb-1">Flujo requerido (L/min)</label>
+            <div class="flex items-center space-x-2">
+              <input
+                type="number"
+                bind:value={caudal_manual}
+                class="border rounded px-3 py-2 w-full"
+                placeholder="Ingrese el flujo en L/min o calcúlelo"
+              />
+              <button
+                type="button"
+                on:click={() => mostrarModalFlujo = true}
+                class="bg-gray-700 text-white font-bold px-3 py-2 rounded hover:bg-gray-800"
+              >
                 Calcular Flujo
               </button>
-            {/if}
+            </div>
           </div>
-
-
-        {:else}
-          <div class="grid grid-cols-3 gap-2">
-            <input type="number" bind:value={largo} class="border rounded px-3 py-2" placeholder="Largo (m)" />
-            <input type="number" bind:value={ancho} class="border rounded px-3 py-2" placeholder="Ancho (m)" />
-            <input type="number" bind:value={altura} class="border rounded px-3 py-2" placeholder="Altura (m)" />
-          </div>
-          <input type="number" bind:value={tiempo_llenado} class="w-full border rounded px-3 py-2 mt-2" placeholder="Tiempo deseado (min)" />
         {/if}
-      </div>
       {/if}
 
       <div>
@@ -278,7 +351,6 @@
             Descargar Cotización
           </button>
         </div>
-
         {#each resultados.resultados as bomba}
         <div class="border rounded p-4 mb-4 bg-white shadow-sm">
           <h3 class="text-lg font-semibold text-[#0099CC]">{bomba.nombre}</h3>
@@ -295,18 +367,6 @@
         {/each}
       </div>
       {/if}
-
-      <ModalPerdidaFriccion
-      mostrar={mostrarModalFriccion}
-      onClose={() => mostrarModalFriccion = false}
-      />
-
-      <ModalCalculoFlujo
-        mostrar={mostrarModalFlujo}
-        onClose={() => mostrarModalFlujo = false}
-        onCalcular={asignarCaudalDesdeModal}
-      />
-
 
     </form>
   </div>
