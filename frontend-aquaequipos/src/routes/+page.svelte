@@ -11,11 +11,11 @@
   let aplicacion = "";
   let fase = "";
   let voltaje = "";
-  let altura_vertical = 0;
-  let longitud_tuberia = 0;
-  let numero_codos = 0;
+  let altura_vertical = "";
+  let longitud_tuberia = "";
+  let numero_codos = "";
   let diametro_tuberia_pulgadas = "";
-  let caudal_manual = 0;
+  let caudal_manual = "";
 
   // Para cálculo por dimensiones
   let dimensiones = { altura: 0, ancho: 0, largo: 0, tiempo: 0 };
@@ -232,17 +232,7 @@
             {/if}
           </select>
         </div>
-        {#if aplicacion?.toLowerCase().includes('hidroneumatico') && voltaje}
-        <div class="flex justify-end mt-2">
-          <button
-            type="button"
-            on:click={() => mostrarModalFriccion = true}
-            class="bg-indigo-600 text-white font-bold py-2 px-4 rounded hover:bg-indigo-700 transition"
-          >
-            Calcular pérdida por fricción
-          </button>
-        </div>
-        {/if}
+        
       </div>
       {/if}
 
@@ -261,11 +251,18 @@
       {/if}
 
       {#if longitud_tuberia}
-      <div>
-        <label class="block font-medium mb-1 text-gray-700">Número de accesorios</label>
-        <input type="number" bind:value={numero_codos} required class="w-full border rounded px-3 py-2" />
-      </div>
+        <div>
+          <label class="block font-medium mb-1 text-gray-700">Número de accesorios</label>
+          <input
+            type="number"
+            bind:value={numero_codos}
+            required
+            class="w-full border rounded px-3 py-2"
+            placeholder="Ejemplo: 4 (codos, te's, válvulas, etc.)"
+          />
+        </div>
       {/if}
+
 
       {#if numero_codos}
       <div>
@@ -347,7 +344,7 @@
         <p class="text-sm text-gray-700 mb-2">CDT Calculada: <strong>{resultados.CDT_calculada} m</strong></p>
         <p class="text-sm text-gray-700 mb-4">Caudal estimado: <strong>{resultados.caudal_estimado} L/min</strong></p>
         <div class="flex justify-center mt-4">
-          <button on:click={descargarPDF} class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+          <button on:click={descargarPDF} class="bg-blue-700 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded">
             Descargar Cotización
           </button>
         </div>

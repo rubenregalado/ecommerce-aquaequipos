@@ -11,7 +11,7 @@
   const dispatch = createEventDispatcher();
 
   function calcular() {
-    const resultado = /* tu cálculo */;
+    const resultado = 1;
     dispatch('guardar', resultado);
     dispatch('close');
   }
