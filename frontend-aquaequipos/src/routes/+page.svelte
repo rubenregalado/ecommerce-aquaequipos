@@ -103,7 +103,7 @@
   doc.addImage(membreteImg, 'JPEG', 0, 0, pageWidth, pageHeight);
 
   let y = 40;
-  const marginX = 15;
+  const marginX = 15; 
 
   doc.setFont('Helvetica', 'bold');
   doc.setFontSize(18);
