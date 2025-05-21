@@ -86,15 +86,22 @@ async function asesoriaTecnica(req, res) {
       console.log(p.attributes);
     });
 
+
+    //---- CÓDIGO NUEVO DE PRUEBA ----
+
     const bombas = productos.map(p => {
-      const atributos = parseAtributosWoo(p.attributes);
-      return {
-        nombre: p.name,
-        url: p.permalink,
-        categoria: p.categories?.[0]?.slug || "desconocida",
-        ...atributos,
-      };
-    });
+    const atributos = parseAtributosWoo(p.attributes);
+    return {
+      nombre: p.name,
+      url: p.permalink,
+      categoria: p.categories?.[0]?.slug || "desconocida",
+      price: p.price || p.regular_price || null,
+      image: p.images && p.images.length > 0 ? p.images[0].src : null,
+      ...atributos,
+    };
+  });
+    console.log("Ejemplo bomba con price e image:", bombas[0]);
+
 
     const bombasValidas = bombas.filter(b => {
       const completas = b.aplicaciones && b.voltaje && b.fase;
@@ -124,56 +131,63 @@ async function asesoriaTecnica(req, res) {
     const tipoRecomendacion = bombasCoincidentes.length > 0 ? "coincidentes" : "de respaldo";
 
     const resultados_crudos = bombasUsadas.map(bomba => {
-      let estado = "";
-      let prioridad = 3;
+    let estado = "";
+    let prioridad = 3;
 
-      const caudalCumpleIdeal = caudal_estimado >= bomba.caudal_seguro_min && caudal_estimado <= bomba.caudal_seguro_max;
-      const caudalCumpleMaximo = caudal_estimado <= bomba.caudal_maximo_lmin;
+    const caudalCumpleIdeal = caudal_estimado >= bomba.caudal_seguro_min && caudal_estimado <= bomba.caudal_seguro_max;
+    const caudalCumpleMaximo = caudal_estimado <= bomba.caudal_maximo_lmin;
 
-      if (!caudalCumpleMaximo) {
-        estado = "❌ No cumple con el caudal requerido";
-      } else if (caudalCumpleIdeal && cdt >= bomba.altura_segura_min && cdt <= bomba.altura_segura_max) {
-        estado = "✅ Dentro del rango ideal de operación";
-        prioridad = 1;
-      } else if (cdt >= bomba.altura_min && cdt <= bomba.altura_max) {
-        estado = "⚠️ Funciona, pero fuera del rango ideal";
-        prioridad = 2;
-      } else {
-        estado = "❌ No compatible con esta bomba";
-      }
+    if (!caudalCumpleMaximo) {
+      estado = "❌ No cumple con el caudal requerido";
+    } else if (caudalCumpleIdeal && cdt >= bomba.altura_segura_min && cdt <= bomba.altura_segura_max) {
+      estado = "✅ Dentro del rango ideal de operación";
+      prioridad = 1;
+    } else if (cdt >= bomba.altura_min && cdt <= bomba.altura_max) {
+      estado = "⚠️ Funciona, pero fuera del rango ideal";
+      prioridad = 2;
+    } else {
+      estado = "❌ No compatible con esta bomba";
+    }
 
-      const caudal_optimo = Math.round((bomba.caudal_seguro_min + bomba.caudal_seguro_max) / 2);
-      const altura_optima = Math.round((bomba.altura_segura_min + bomba.altura_segura_max) / 2);
+    const caudal_optimo = Math.round((bomba.caudal_seguro_min + bomba.caudal_seguro_max) / 2);
+    const altura_optima = Math.round((bomba.altura_segura_min + bomba.altura_segura_max) / 2);
 
-      return {
-        nombre: bomba.nombre,
-        url: bomba.url,
-        categoria: bomba.categoria,
-        estado,
-        prioridad,
-        rendimiento_sugerido: {
-          caudal_aproximado_lmin: caudal_optimo,
-          altura_aproximada_m: altura_optima,
-        },
-        nota_tecnica: `Tu requerimiento fue de ${caudal_estimado} L/min a ${cdt} m.`
-      };
-    });
+    return {
+      nombre: bomba.nombre,
+      url: bomba.url,
+      categoria: bomba.categoria,
+      estado,
+      prioridad,
+      rendimiento_sugerido: {
+        caudal_aproximado_lmin: caudal_optimo,
+        altura_aproximada_m: altura_optima,
+      },
+      nota_tecnica: `Tu requerimiento fue de ${caudal_estimado} L/min a ${cdt} m.`,
+      price: bomba.price,
+      image: bomba.image
+    };
+  });  // <-- Aquí se cierra correctamente el map
 
-    const resultados_ordenados = resultados_crudos
-      .filter(r => r.prioridad <= 2)
-      .sort((a, b) => a.prioridad - b.prioridad);
+  const resultados_ordenados = resultados_crudos
+    .filter(r => r.prioridad <= 2)
+    .sort((a, b) => a.prioridad - b.prioridad);
 
-    res.json({
-      status: "ok",
-      aplicacion,
-      fase,
-      voltaje,
-      tipo_recomendacion: tipoRecomendacion,
-      CDT_calculada: cdt,
-      caudal_estimado,
-      resultados: resultados_ordenados.slice(0, 4),
-      bombas_totales_evaluadas: bombasUsadas.length,
-    });
+
+  console.log("Ejemplo resultado crudo con price e image:", resultados_ordenados[0]);
+
+  
+  res.json({
+    status: "ok",
+    aplicacion,
+    fase,
+    voltaje,
+    tipo_recomendacion: tipoRecomendacion,
+    CDT_calculada: cdt,
+    caudal_estimado,
+    resultados: resultados_ordenados.slice(0, 4),
+    bombas_totales_evaluadas: bombasUsadas.length,
+  });
+
 
   } catch (e) {
     console.error("❌ Error al obtener productos desde WooCommerce:", e.message);

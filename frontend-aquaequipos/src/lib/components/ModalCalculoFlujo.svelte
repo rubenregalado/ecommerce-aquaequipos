@@ -3,10 +3,10 @@
   export let onClose: () => void;
   export let onCalcular: (gpm: number) => void;
 
-  let banos = 0;
-  let duchas = 0;
-  let lavamanos = 0;
-  let lavadoras = 0;
+  let banos = "";
+  let duchas = "";
+  let lavamanos = "";
+  let lavadoras = "";
 
   // Variables para "Otros" con tipo que permite cadena vacía
   let otros: Array<{ cantidad: number; gpm: number }> = [];

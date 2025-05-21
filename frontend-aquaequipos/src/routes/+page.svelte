@@ -1,5 +1,33 @@
 <script lang="ts">
   
+  import { onMount } from 'svelte';
+
+    type Producto = {
+      id: number;
+      name: string;
+      price: string;
+      regular_price: string;
+      image: string | null;
+    };
+
+    let productos: Producto[] = [];
+    let cargandoProductos = true;
+    let errorProductos = "";
+
+    onMount(async () => {
+      try {
+        const res = await fetch('http://localhost:3000/productos');
+        if (!res.ok) throw new Error('No se pudieron cargar los productos');
+        productos = await res.json();
+      } catch (e) {
+        errorProductos = "Error al cargar productos";
+        console.error(e);
+      } finally {
+        cargandoProductos = false;
+      }
+    });
+
+//--------------- HASTA ACÁ MODIFIQUÉ -------------
   import ModalCalculoFlujo from '$lib/components/ModalCalculoFlujo.svelte';
   import ModalPerdidaFriccion from '$lib/components/ModalPerdidaFriccion.svelte';
   import ModalCalculoCaudal from '$lib/components/ModalCalculoCaudal.svelte';
@@ -135,7 +163,7 @@
 
   autoTable(doc, {
     startY: y,
-    head: [['N°', 'Nombre', 'Estado', 'Nota Técnica', 'Rendimiento']],
+    head: [['N°', 'Nombre', 'Estado', 'Rendimiento']],
     body: tableBody,
     styles: {
       font: 'helvetica',
@@ -381,7 +409,9 @@
       </div>
 
       {#if resultados}
-      <div class="mt-8 bg-green-50 border border-green-200 p-4 rounded-lg">
+      
+      <div class="mt-8 bg-[#E0F7FA] border border-[#B2EBF2] p-4 rounded-lg">
+
         <h2 class="text-xl font-bold text-[#0099CC] mb-4">Recomendaciones de Bombas</h2>
         <p class="text-sm text-gray-700 mb-2">CDT Calculada: <strong>{resultados.CDT_calculada} m</strong></p>
         <p class="text-sm text-gray-700 mb-4">Caudal estimado: <strong>{resultados.caudal_estimado} L/min</strong></p>
@@ -396,19 +426,35 @@
 
         </div>
         {#each resultados.resultados as bomba}
-        <div class="border rounded p-4 mb-4 bg-white shadow-sm">
-          <h3 class="text-lg font-semibold text-[#0099CC]">{bomba.nombre}</h3>
-          <p class="text-sm text-gray-600 mb-1">{bomba.estado}</p>
-          <p class="text-sm text-gray-700 mb-1 italic">{bomba.nota_tecnica}</p>
-          <p class="text-sm mt-1">🔧 <strong>Rendimiento ideal:</strong> {bomba.rendimiento_sugerido.caudal_aproximado_lmin} L/min a {bomba.rendimiento_sugerido.altura_aproximada_m} m</p>
-          {#if bomba.advertencia}
-            <p class="text-red-600 text-sm font-semibold">{bomba.advertencia}</p>
-          {/if}
-          <a href={bomba.url} target="_blank" class="inline-block mt-2 text-[#0099CC] hover:underline">
-            Ver producto en tienda 🛒
-          </a>
-        </div>
-        {/each}
+  <div class="border rounded p-4 mb-4 bg-white shadow-sm">
+    <h3 class="text-lg font-semibold text-[#0099CC]">{bomba.nombre}</h3>
+
+    <div class="flex flex-col items-center">
+      {#if bomba.image}
+        <img src={bomba.image} alt={"Imagen de " + bomba.nombre} class="w-40 h-40 object-contain my-2 rounded" />
+      {/if}
+      {#if bomba.price}
+        <p class="text-xl font-bold text-green-700 mb-2">Q{bomba.price}.00</p>
+      {/if}
+    </div>
+
+    <p class="text-sm text-gray-600 mb-1">{bomba.estado}</p>
+    <p class="text-sm text-gray-700 mb-1 italic">{bomba.nota_tecnica}</p>
+    <p class="text-sm mt-1">
+      🔧 <strong>Rendimiento ideal:</strong> {bomba.rendimiento_sugerido.caudal_aproximado_lmin} L/min a {bomba.rendimiento_sugerido.altura_aproximada_m} m
+    </p>
+
+    {#if bomba.advertencia}
+      <p class="text-red-600 text-sm font-semibold">{bomba.advertencia}</p>
+    {/if}
+
+    <a href={bomba.url} target="_blank" class="inline-block mt-2 text-[#0099CC] hover:underline">
+      Ver producto en tienda 🛒
+    </a>
+  </div>
+{/each}
+
+
       </div>
       {/if}
 
