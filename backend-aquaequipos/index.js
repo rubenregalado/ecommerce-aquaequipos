@@ -17,9 +17,6 @@ app.get('/', (req, res) => {
   res.send('API de AquaEquipos funcionando 🛠️');
 });
 
-app.listen(PORT, () => {
-  console.log(`Servidor corriendo en http://localhost:${PORT}`);
-});
 
 // Iniciar servidor
 app.listen(PORT, () => {

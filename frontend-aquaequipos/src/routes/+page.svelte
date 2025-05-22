@@ -5,6 +5,10 @@
   import autoTable from 'jspdf-autotable';
   import { onMount } from 'svelte';
   import { logoBase64 } from './logobase64.js';
+  import ModalDatos from '$lib/components/ModalDatos.svelte';
+
+  let modalOpen = false;
+  let datosCliente = null;
 
     type Producto = {
       id: number;
@@ -102,7 +106,23 @@
       descargarPDF();
     }
 
+    async function onCerrarModal() {
+    modalOpen = false;
+  }
 
+  async function onAbrirModal() {
+    modalOpen = true;
+  }
+
+
+  async function onDatosSubmit(event) {
+      datosCliente = event.detail;
+      modalOpen = false;
+
+      // Ahora sí, prepara imágenes y genera PDF pasando datosCliente
+      await prepararImagenes();
+      descargarPDF(datosCliente);
+    }
   async function enviarFormulario(event: Event) {
     event.preventDefault();
     error = "";
@@ -192,29 +212,59 @@
   doc.line(marginX, y, pageWidth - marginX, y);
   y += 10;
 
+  // Imprime datos del cliente arriba
+  doc.setFontSize(12);
+  doc.setTextColor('#000');
+
+  // Primera línea: NIT y DPI
+  doc.text(`NIT: ${datosCliente.nit}`, marginX, y);
+  doc.text(`DPI: ${datosCliente.dpi}`, marginX + 90, y); // Ajusta 90 según el ancho de tu hoja y tus datos
+  y += 7;
+
+  // Segunda línea: Nombre y Dirección
+  doc.text(`Dirección: ${datosCliente.direccion}`, marginX, y);
+  doc.text(`Nombre: ${datosCliente.nombre}`, marginX + 90, y); // Ajusta 90 según necesidad
+  y += 7;
+
+  doc.setDrawColor('#003366');
+  doc.setLineWidth(0.8);
+  doc.line(marginX, y, pageWidth - marginX, y);
+  y += 10;
+
   doc.setFont('Helvetica', 'normal');
   doc.setFontSize(12);
   doc.setTextColor('#000000');
+  // CDT a la izquierda
   doc.text(`CDT Calculada: ${resultados.CDT_calculada} m`, marginX, y);
-  y += 7;
-  doc.text(`Caudal estimado: ${resultados.caudal_estimado} L/min`, marginX, y);
-  y += 12;
+
+  // Caudal a la derecha (ajusta el valor 100 según espacio disponible)
+  doc.text(`Caudal estimado: ${resultados.caudal_estimado} L/min`, marginX + 100, y);
+
+  y += 8; // Avanza la línea para el siguiente texto
+
+  // Nota técnica abajo en línea separada
+  doc.text(`NOTA TÉCNICA: ${resultados.resultados[0].nota_tecnica}`, marginX, y);
+  y += 8;
+
+  doc.setDrawColor('#003366');
+  doc.setLineWidth(0.8);
+  doc.line(marginX, y, pageWidth - marginX, y);
+  y += 5;
 
   const tableBody = resultados.resultados.map((bomba, index) => [
     `${index + 1}`,
     bomba.nombre,
     bomba.estado,
-    bomba.nota_tecnica,
     `${bomba.rendimiento_sugerido.caudal_aproximado_lmin} L/min a ${bomba.rendimiento_sugerido.altura_aproximada_m} m` +
       (bomba.advertencia ? `\n⚠️ ${bomba.advertencia}` : ''),
-    bomba.price ? `Q${bomba.price}` : 'N/A',
+    bomba.price ? `Q${bomba.price}.00` : 'N/A',
     '' // Celda vacía para la imagen, que se dibujará con didDrawCell
   ]);
 
 
   autoTable(doc, {
       startY: y,
-      head: [['N°', 'Nombre', 'Estado', 'Nota técnica', 'Rendimiento', 'Precio', 'Foto']],
+      head: [['N°', 'Nombre', 'Estado', 'Rendimiento', 'Precio']],
       body: tableBody,
       styles: {
         font: 'helvetica',
@@ -229,14 +279,14 @@
         fontStyle: 'bold',
       },
       columnStyles: {
-        0: { cellWidth: 10 },
-        1: { cellWidth: 60 },
-        2: { cellWidth: 30 },
-        3: { cellWidth: 60 },
-        4: { cellWidth: 50 },
-        5: { cellWidth: 25 },
-        6: { cellWidth: 25 }, // columna para la imagen
+        0: { cellWidth: 10 },  // N°
+        1: { cellWidth: 65 },  // Nombre
+        2: { cellWidth: 45 },  // Estado
+        3: { cellWidth: 35 },  // Nota técnica
+        4: { cellWidth: 30 },  // Rendimiento
+        5: { cellWidth: 20 },  // Precio
       },
+
       margin: { left: marginX, right: marginX },
       didDrawCell: function (data) {
         if (data.column.index === 6 && data.cell.section === 'body') {
@@ -287,6 +337,12 @@
 <ModalPerdidaFriccion
   mostrar={mostrarModalFriccion}
   onClose={() => mostrarModalFriccion = false}
+/>
+
+<ModalDatos
+  open={modalOpen}
+  on:submit={onDatosSubmit}
+  on:close={onCerrarModal}
 />
 
 <main class="min-h-screen bg-gray-50 p-6">
@@ -490,7 +546,7 @@
           
           <button 
             type="button" 
-            on:click={onDescargarPDF} 
+            on:click={onAbrirModal} 
             class="bg-blue-700 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded">
             Descargar Cotización
           </button>
@@ -533,3 +589,78 @@
     </form>
   </div>
 </main>
+
+<a href="https://wa.me/50250040468" class="whatsapp-float" target="_blank" aria-label="Chatea por WhatsApp">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp">
+  <span class="whatsapp-tooltip">Necesito más información</span>
+</a>
+
+<style>
+.whatsapp-float {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  background: #25D366;
+  border-radius: 50%;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: box-shadow 0.2s, transform 0.2s;
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+
+.whatsapp-float:hover,
+.whatsapp-float:focus {
+  box-shadow: 0 8px 28px rgba(0,0,0,0.24);
+  transform: scale(1.08);
+  background: #1ebe57;
+}
+
+.whatsapp-float img {
+  width: 32px;
+  height: 32px;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Tooltip styles */
+.whatsapp-tooltip {
+  visibility: hidden;
+  opacity: 0;
+  width: max-content;
+  max-width: 200px;
+  background: #222;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 7px 15px;
+  position: absolute;
+  right: 110%;
+  bottom: 50%;
+  transform: translateY(50%);
+  font-size: 0.95rem;
+  white-space: nowrap;
+  pointer-events: none;
+  transition: opacity 0.2s, visibility 0.2s;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.18);
+}
+
+.whatsapp-float:hover .whatsapp-tooltip,
+.whatsapp-float:focus .whatsapp-tooltip {
+  visibility: visible;
+  opacity: 1;
+}
+
+@media (max-width: 600px) {
+  .whatsapp-tooltip {
+    display: none;
+  }
+}
+</style>

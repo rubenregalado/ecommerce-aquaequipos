@@ -42,7 +42,7 @@
 
       <div class="space-y-3">
         <div>
-          <label class="block font-medium">🛁 Baños:</label>
+          <label class="block font-medium">🚽 Baños:</label>
           <input type="number" bind:value={banos} min="0" class="w-full border px-2 py-1 rounded" />
         </div>
         <div>
@@ -64,7 +64,7 @@
           <div class="flex gap-2 mb-2">
             <input
               type="number"
-              placeholder="Cantidad de accesorios. Ejemplo: Aspersor"
+              placeholder="Ejemplo: Aspersor"
               bind:value={nuevoOtroCantidad}
               min="0"
               class="w-1/2 border px-2 py-1 rounded"
