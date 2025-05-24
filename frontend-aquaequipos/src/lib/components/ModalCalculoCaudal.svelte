@@ -25,11 +25,11 @@
   <div class="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center">
     <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6 relative" on:click|stopPropagation>
       <button class="absolute top-2 right-2 text-gray-600 hover:text-black text-lg" on:click={onClose}>✖</button>
-      <h2 class="text-xl font-bold mb-4 text-[#0099CC]">Calcular Caudal</h2>
+      <h2 class="text-xl font-bold mb-4 text-[#0099CC]">Ingresa los datos de tu tanque:</h2>
 
       <div class="space-y-3">
         <div>
-          <label class="block font-medium">📏 Altura (m):</label>
+          <label class="block font-medium">📏 Profundidad (m):</label>
           <input type="number" min="0" step="any" bind:value={altura} class="w-full border px-2 py-1 rounded" placeholder="Ej: 2.5" />
         </div>
         <div>
