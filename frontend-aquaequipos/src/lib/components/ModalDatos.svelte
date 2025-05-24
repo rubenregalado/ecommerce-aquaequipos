@@ -27,7 +27,7 @@
           <input id="nit" type="text" bind:value={nit} required placeholder="Ingrese NIT" />
         </div>
         <div class="field-group">
-          <label for="dpi">DPI</label>
+          <label for="dpi">Correo</label>
           <input id="dpi" type="text" bind:value={dpi}  placeholder="Ingrese DPI" />
         </div>
         <div class="field-group">

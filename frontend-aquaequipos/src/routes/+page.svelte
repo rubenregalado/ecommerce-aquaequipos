@@ -75,6 +75,15 @@
       });
     }
 
+    /* Ejemplo usando fetch en tu frontend Svelte
+  async function notificarCotizacion(emailCliente, detallesCotizacion) {
+    await fetch('https://TU_BACKEND_URL/api/notificar-cotizacion', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ emailCliente, detallesCotizacion }),
+    });
+  } */
+
     // Función para preparar las imágenes (convertir URLs a Base64)
     async function prepararImagenes() {
       for (const bomba of resultados.resultados) {
