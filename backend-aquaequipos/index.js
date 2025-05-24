@@ -9,9 +9,11 @@ app.use(express.json());
 
 const calculoRoute = require('./routes/calculoRoute');
 const productosRoute = require('./routes/productosRoute');
+const clientesRouter = require("./routes/clientesRoute");
 
 app.use("/api/asesoria", calculoRoute);
 app.use("/api/productos", productosRoute);
+app.use("/api", clientesRouter);
 
 app.get('/', (req, res) => {
   res.send('API de AquaEquipos funcionando 🛠️');
@@ -20,9 +22,3 @@ app.get('/', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });
-
-// Iniciar servidor
-app.listen(PORT, () => {
-  console.log(`Servidor corriendo en http://localhost:${PORT}`);
-});
-
