@@ -13,7 +13,7 @@
 
   let accesorios: Accesorio[] = [
     { nombre: "Baño Completo", icono: "/icons/banio.svg", valor: 1, gpm: 5 },
-    { nombre: "Medio Baño", icono: "/icons/mediobanio.svg", valor: 1, gpm: 2 },
+    { nombre: "Medio Baño", icono: "/icons/medio-banio.svg", valor: 1, gpm: 2 },
     { nombre: "Cocina", icono: "/icons/cocina.svg", valor: 0, gpm: 1 },
     { nombre: "Cuarto de Lavado", icono: "/icons/lavado.svg", valor: 0, gpm: 2 },
     { nombre: "Manguera de Riego", icono: "/icons/manguera.svg", valor: 0, gpm: 4 },
