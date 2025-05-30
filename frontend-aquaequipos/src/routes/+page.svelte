@@ -6,6 +6,9 @@
   import { onMount } from 'svelte';
   import { logoBase64 } from './logobase64.js';
   import ModalDatos from '$lib/components/ModalDatos.svelte';
+  import Chatbot from '../routes/chatbotfe.svelte';
+
+
 
   let modalOpen = false;
   let datosCliente = null;
@@ -739,6 +742,9 @@
   </div>
 </main>
 
+<Chatbot />
+
+
 <a href="https://wa.me/50250040468" class="whatsapp-float" target="_blank" aria-label="Chatea por WhatsApp">
   <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp">
   <span class="whatsapp-tooltip">Necesito más información</span>
@@ -747,7 +753,7 @@
 <style>
 .whatsapp-float {
   position: fixed;
-  bottom: 24px;
+  bottom: 10px;
   right: 24px;
   z-index: 9999;
   background: #25D366;
