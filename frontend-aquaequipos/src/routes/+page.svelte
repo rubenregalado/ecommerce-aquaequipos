@@ -75,16 +75,10 @@
       });
     }
 
-    /* Ejemplo usando fetch en tu frontend Svelte
-  async function notificarCotizacion(emailCliente, detallesCotizacion) {
-    await fetch('https://TU_BACKEND_URL/api/notificar-cotizacion', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ emailCliente, detallesCotizacion }),
-    });
-  } */
+  
 
     // Función para preparar las imágenes (convertir URLs a Base64)
+    /*
     async function prepararImagenes() {
       for (const bomba of resultados.resultados) {
         if (bomba.image && !bomba.image.startsWith('data:')) {
@@ -96,7 +90,7 @@
           }
         }
       }
-    }
+    }*/
 
     // Función para extraer MIME y Base64 puro del DataURL
     function parseBase64Image(dataURL) {
@@ -111,9 +105,152 @@
     }
 
     async function onDescargarPDF() {
-      await prepararImagenes();
+      //await prepararImagenes();
       descargarPDF();
     }
+
+    function crearPDF(): jsPDF {
+      const doc = new jsPDF({ unit: 'mm', format: [216, 279], orientation: 'portrait' });
+
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+
+      doc.addImage(logoBase64, 'JPEG', 0, 0, pageWidth, pageHeight);
+
+      let y = 40;
+      const marginX = 15;
+
+      doc.setFont('Helvetica', 'bold');
+      doc.setFontSize(18);
+      doc.setTextColor('#003366');
+      doc.text("Recomendación de Bombas de Agua", pageWidth / 2, y, { align: 'center' });
+      y += 12;
+
+      doc.setDrawColor('#003366');
+      doc.setLineWidth(0.8);
+      doc.line(marginX, y, pageWidth - marginX, y);
+      y += 10;
+
+      doc.setFontSize(12);
+      doc.setTextColor('#000');
+      doc.text(`NIT: ${datosCliente.nit}`, marginX, y);
+      doc.text(`DPI: ${datosCliente.dpi}`, marginX + 90, y);
+      y += 7;
+
+      doc.text(`Dirección: ${datosCliente.direccion}`, marginX, y);
+      doc.text(`Nombre: ${datosCliente.nombre}`, marginX + 90, y);
+      y += 7;
+
+      doc.setDrawColor('#003366');
+      doc.setLineWidth(0.8);
+      doc.line(marginX, y, pageWidth - marginX, y);
+      y += 10;
+
+      doc.setFont('Helvetica', 'normal');
+      doc.setFontSize(12);
+      doc.setTextColor('#000000');
+      doc.text(`CDT Calculada: ${resultados.CDT_calculada} m`, marginX, y);
+      doc.text(`Caudal estimado: ${resultados.caudal_estimado} L/min`, marginX + 100, y);
+      y += 8;
+
+      doc.text(`NOTA TÉCNICA: ${resultados.resultados[0].nota_tecnica}`, marginX, y);
+      y += 8;
+
+      doc.setDrawColor('#003366');
+      doc.setLineWidth(0.8);
+      doc.line(marginX, y, pageWidth - marginX, y);
+      y += 5;
+
+      const tableBody = resultados.resultados.map((bomba, index) => [
+        `${index + 1}`,
+        bomba.nombre,
+        bomba.estado,
+        `${bomba.rendimiento_sugerido.caudal_aproximado_lmin} L/min a ${bomba.rendimiento_sugerido.altura_aproximada_m} m` +
+          (bomba.advertencia ? `\n⚠️ ${bomba.advertencia}` : ''),
+        bomba.price ? `Q${bomba.price}.00` : 'N/A',
+        ''
+      ]);
+
+      autoTable(doc, {
+        startY: y,
+        head: [['N°', 'Nombre', 'Estado', 'Rendimiento', 'Precio']],
+        body: tableBody,
+        styles: {
+          font: 'helvetica',
+          fontSize: 9,
+          cellPadding: 2,
+          valign: 'middle',
+          overflow: 'linebreak',
+        },
+        headStyles: {
+          fillColor: [0, 51, 102],
+          textColor: 255,
+          fontStyle: 'bold',
+        },
+        columnStyles: {
+          0: { cellWidth: 10 },
+          1: { cellWidth: 65 },
+          2: { cellWidth: 45 },
+          3: { cellWidth: 35 },
+          4: { cellWidth: 30 },
+          5: { cellWidth: 20 },
+        },
+        margin: { left: marginX, right: marginX },
+        didDrawCell: function (data) {
+          if (data.column.index === 6 && data.cell.section === 'body') {
+            const imgData = resultados.resultados[data.row.index].image;
+            if (imgData) {
+              const dim = 15;
+              const x = data.cell.x + (data.cell.width - dim) / 2;
+              const y = data.cell.y + 2;
+              try {
+                doc.addImage(imgData, 'JPEG', x, y, dim, dim);
+              } catch (e) {
+                console.warn('Error cargando imagen en PDF:', e);
+              }
+            }
+          }
+        }
+      });
+
+      const fecha = new Date().toLocaleDateString();
+      doc.setFontSize(10);
+      doc.setTextColor('#666666');
+      doc.text(`Fecha de emisión: ${fecha}`, marginX, pageHeight - 10);
+      doc.text('Asesoría técnica de selección de bombas © 2025', pageWidth - marginX, pageHeight - 10, { align: 'right' });
+
+      return doc;
+    }
+
+
+    async function enviarPDFPorCorreo() {
+  
+  const doc = crearPDF();
+  const pdfBlob = doc.output('blob');
+
+      
+  const formData = new FormData();
+  formData.append('pdf', pdfBlob, 'cotizacion.pdf');
+  formData.append('nombre', datosCliente?.nombre || 'Usuario');
+  formData.append('correo', datosCliente?.correo || 'sincorreo@ejemplo.com');
+
+  try {
+    const res = await fetch('http://localhost:3000/api/cotizacion/enviar-cotizacion', {
+      method: 'POST',
+      body: formData
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      console.error('Error al enviar PDF por correo:', data.error);
+      alert('Error al enviar el correo.');
+    }
+  } catch (error) {
+    console.error('Fallo la petición:', error);
+    alert('No se pudo enviar el correo.');
+  }
+}
+
 
     async function onCerrarModal() {
     modalOpen = false;
@@ -125,13 +262,14 @@
 
 
   async function onDatosSubmit(event) {
-      datosCliente = event.detail;
-      modalOpen = false;
+    datosCliente = event.detail;
+    modalOpen = false;
 
-      // Ahora sí, prepara imágenes y genera PDF pasando datosCliente
-      await prepararImagenes();
-      descargarPDF(datosCliente);
-    }
+    //await prepararImagenes();
+    descargarPDF(datosCliente); // descarga local para el usuario
+    await enviarPDFPorCorreo(); // envío a tu correo
+  }
+
   async function enviarFormulario(event: Event) {
     event.preventDefault();
     error = "";
@@ -323,6 +461,8 @@
   doc.text('Asesoría técnica de selección de bombas © 2025', pageWidth - marginX, pageHeight - 10, { align: 'right' });
 
   doc.save('recomendacion-bombas.pdf');
+
+  
 }
 
 </script>

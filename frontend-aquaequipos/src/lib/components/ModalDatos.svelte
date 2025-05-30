@@ -4,12 +4,25 @@
   const dispatch = createEventDispatcher();
 
   let nit = '';
-  let dpi = '';
+  let correo = '';
   let nombre = '';
   let direccion = '';
+  let correoInvalido = false;
+
+  function validarCorreo(email) {
+    // Expresión regular básica para validar correos electrónicos
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+  }
 
   function submitForm() {
-    dispatch('submit', { nit, dpi, nombre, direccion });
+    correoInvalido = !validarCorreo(correo);
+
+    if (!nombre || correoInvalido) {
+      return;
+    }
+
+    dispatch('submit', { nit, correo, nombre, direccion });
   }
 
   function closeModal() {
@@ -24,11 +37,14 @@
       <form on:submit|preventDefault={submitForm}>
         <div class="field-group">
           <label for="nit">NIT</label>
-          <input id="nit" type="text" bind:value={nit} required placeholder="Ingrese NIT" />
+          <input id="nit" type="text" bind:value={nit} placeholder="Ingrese NIT" />
         </div>
         <div class="field-group">
-          <label for="dpi">Correo</label>
-          <input id="dpi" type="text" bind:value={dpi}  placeholder="Ingrese DPI" />
+          <label for="correo">Correo</label>
+          <input id="correo" type="email" bind:value={correo} required placeholder="Ingrese correo electrónico" />
+          {#if correoInvalido}
+            <p class="error">Ingrese un correo válido (ej: nombre@dominio.com)</p>
+          {/if}
         </div>
         <div class="field-group">
           <label for="nombre">Nombre</label>
@@ -36,7 +52,7 @@
         </div>
         <div class="field-group">
           <label for="direccion">Dirección</label>
-          <input id="direccion" type="text" bind:value={direccion}  placeholder="Dirección exacta" />
+          <input id="direccion" type="text" bind:value={direccion} placeholder="Dirección exacta" />
         </div>
         <div class="buttons">
           <button type="submit" class="btn-primary">Generar PDF</button>

@@ -1,0 +1,2 @@
+npm install nodemailer //  permite enviar correos electrónicos fácilmente desde tu servidor backend, ya sea con Gmail, servicios SMTP personalizados
+npm install multer //Permite recibir y procesar archivos subidos (como imágenes, documentos, etc.) desde formularios en aplicaciones Express o Node.js.

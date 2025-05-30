@@ -9,8 +9,8 @@ app.use(express.json());
 
 const calculoRoute = require('./routes/calculoRoute');
 const productosRoute = require('./routes/productosRoute');
-const cotizacionRoute = require('./routes/cotizacionRoute');
-app.use('/api', cotizacionRoute);
+const cotizacion = require('./routes/cotizacion');
+app.use("/api/cotizacion", cotizacion);
 app.use("/api/asesoria", calculoRoute);
 app.use("/api/productos", productosRoute);
 
