@@ -7,8 +7,7 @@
   import { logoBase64 } from './logobase64.js';
   import ModalDatos from '$lib/components/ModalDatos.svelte';
   import Chatbot from '../routes/chatbotfe.svelte';
-
-
+  import '$lib/pdf-fonts/NotoEmoji-normal';
 
   let modalOpen = false;
   let datosCliente = null;
@@ -78,23 +77,6 @@
       });
     }
 
-  
-
-    // Función para preparar las imágenes (convertir URLs a Base64)
-    /*
-    async function prepararImagenes() {
-      for (const bomba of resultados.resultados) {
-        if (bomba.image && !bomba.image.startsWith('data:')) {
-          try {
-            bomba.image = await toDataURL(bomba.image);
-          } catch (e) {
-            console.warn('No se pudo convertir la imagen', bomba.image, e);
-            bomba.image = null; // O asigna un placeholder base64 si quieres
-          }
-        }
-      }
-    }*/
-
     // Función para extraer MIME y Base64 puro del DataURL
     function parseBase64Image(dataURL) {
       const matches = dataURL.match(/^data:(image\/\w+);base64,(.+)$/);
@@ -114,7 +96,7 @@
 
     function crearPDF(): jsPDF {
       const doc = new jsPDF({ unit: 'mm', format: [216, 279], orientation: 'portrait' });
-
+      doc.setFont('NotoColorEmoji-Regular');
       const pageWidth = doc.internal.pageSize.getWidth();
       const pageHeight = doc.internal.pageSize.getHeight();
 
@@ -137,7 +119,7 @@
       doc.setFontSize(12);
       doc.setTextColor('#000');
       doc.text(`NIT: ${datosCliente.nit}`, marginX, y);
-      doc.text(`DPI: ${datosCliente.dpi}`, marginX + 90, y);
+      doc.text(`CORREO: ${datosCliente.correo}`, marginX + 90, y);
       y += 7;
 
       doc.text(`Dirección: ${datosCliente.direccion}`, marginX, y);
@@ -199,6 +181,20 @@
           5: { cellWidth: 20 },
         },
         margin: { left: marginX, right: marginX },
+
+        didParseCell: function (data) {
+          if (data.section === 'body' && data.column.index === 2) {
+            const estado = data.cell.raw;
+            if (estado === 'Dentro del rango ideal de operación') {
+              data.cell.styles.textColor = [0, 150, 0]; // verde
+            } else if (estado === 'No cumple con el caudal requerido') {
+              data.cell.styles.textColor = [200, 0, 0]; // rojo
+            } else if (estado === 'Funciona, pero fuera del rango ideal') {
+              data.cell.styles.textColor = [255, 165, 0]; // amarillo
+            }
+          }
+        },
+
         didDrawCell: function (data) {
           if (data.column.index === 6 && data.cell.section === 'body') {
             const imgData = resultados.resultados[data.row.index].image;
@@ -215,6 +211,7 @@
           }
         }
       });
+
 
       const fecha = new Date().toLocaleDateString();
       doc.setFontSize(10);
@@ -343,6 +340,7 @@
   }
 
   const doc = new jsPDF({ unit: 'mm', format: [216, 279], orientation: 'portrait' });
+  doc.setFont('NotoColorEmoji-Regular');
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
 
@@ -366,9 +364,9 @@
   doc.setFontSize(12);
   doc.setTextColor('#000');
 
-  // Primera línea: NIT y DPI
+  // Primera línea: NIT y correo
   doc.text(`NIT: ${datosCliente.nit}`, marginX, y);
-  doc.text(`DPI: ${datosCliente.dpi}`, marginX + 90, y); // Ajusta 90 según el ancho de tu hoja y tus datos
+  doc.text(`CORREO: ${datosCliente.correo}`, marginX + 90, y); // Ajusta 90 según el ancho de tu hoja y tus datos
   y += 7;
 
   // Segunda línea: Nombre y Dirección
@@ -413,48 +411,61 @@
 
 
   autoTable(doc, {
-      startY: y,
-      head: [['N°', 'Nombre', 'Estado', 'Rendimiento', 'Precio']],
-      body: tableBody,
-      styles: {
-        font: 'helvetica',
-        fontSize: 9,
-        cellPadding: 2,
-        valign: 'middle',
-        overflow: 'linebreak',
-      },
-      headStyles: {
-        fillColor: [0, 51, 102],
-        textColor: 255,
-        fontStyle: 'bold',
-      },
-      columnStyles: {
-        0: { cellWidth: 10 },  // N°
-        1: { cellWidth: 65 },  // Nombre
-        2: { cellWidth: 45 },  // Estado
-        3: { cellWidth: 35 },  // Nota técnica
-        4: { cellWidth: 30 },  // Rendimiento
-        5: { cellWidth: 20 },  // Precio
-      },
+    startY: y,
+    head: [['N°', 'Nombre', 'Estado', 'Rendimiento', 'Precio']],
+    body: tableBody,
+    styles: {
+      font: 'helvetica',
+      fontSize: 9,
+      cellPadding: 2,
+      valign: 'middle',
+      overflow: 'linebreak',
+    },
+    headStyles: {
+      fillColor: [0, 51, 102],
+      textColor: 255,
+      fontStyle: 'bold',
+    },
+    columnStyles: {
+      0: { cellWidth: 10 },
+      1: { cellWidth: 65 },
+      2: { cellWidth: 45 },
+      3: { cellWidth: 35 },
+      4: { cellWidth: 30 },
+      5: { cellWidth: 20 },
+    },
+    margin: { left: marginX, right: marginX },
 
-      margin: { left: marginX, right: marginX },
-      didDrawCell: function (data) {
-        if (data.column.index === 6 && data.cell.section === 'body') {
-          const imgData = resultados.resultados[data.row.index].image;
-          if (imgData) {
-            const dim = 15; // tamaño de la imagen en mm
-            const x = data.cell.x + (data.cell.width - dim) / 2;
-            const y = data.cell.y + 2;
-            try {
-              doc.addImage(imgData, 'JPEG', x, y, dim, dim);
-            } catch (e) {
-              // Si la imagen no carga, puedes ignorar o mostrar un placeholder
-              console.warn('Error cargando imagen en PDF:', e);
-            }
+    didParseCell: function (data) {
+      if (data.section === 'body' && data.column.index === 2) {
+        const estado = data.cell.raw;
+        if (estado === 'Dentro del rango ideal de operación') {
+          data.cell.styles.textColor = [0, 150, 0]; // verde
+        } else if (estado === 'No cumple con el caudal requerido') {
+          data.cell.styles.textColor = [200, 0, 0]; // rojo
+        } else if (estado === 'Funciona, pero fuera del rango ideal') {
+          data.cell.styles.textColor = [255, 165, 0]; // amarillo
+        }
+      }
+    },
+
+    didDrawCell: function (data) {
+      if (data.column.index === 6 && data.cell.section === 'body') {
+        const imgData = resultados.resultados[data.row.index].image;
+        if (imgData) {
+          const dim = 15;
+          const x = data.cell.x + (data.cell.width - dim) / 2;
+          const y = data.cell.y + 2;
+          try {
+            doc.addImage(imgData, 'JPEG', x, y, dim, dim);
+          } catch (e) {
+            console.warn('Error cargando imagen en PDF:', e);
           }
         }
       }
-    });
+    }
+  });
+
 
 
   const fecha = new Date().toLocaleDateString();
@@ -718,7 +729,11 @@
       {/if}
     </div>
 
-    <p class="text-sm text-gray-600 mb-1">{bomba.estado}</p>
+    <p 
+      class="text-sm font-semibold mb-1 {bomba.estado === 'Dentro del rango ideal de operación' ? 'text-green-700' : bomba.estado === 'No cumple con el caudal requerido' ? 'text-red-600' : 'text-yellow-600'}">
+      {bomba.estado}
+    </p>
+
     <p class="text-sm text-gray-700 mb-1 italic">{bomba.nota_tecnica}</p>
     <p class="text-sm mt-1">
       🔧 <strong>Rendimiento ideal:</strong> {bomba.rendimiento_sugerido.caudal_aproximado_lmin} L/min a {bomba.rendimiento_sugerido.altura_aproximada_m} m

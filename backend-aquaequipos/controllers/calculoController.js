@@ -138,12 +138,12 @@ async function asesoriaTecnica(req, res) {
     const caudalCumpleMaximo = caudal_estimado <= bomba.caudal_maximo_lmin;
 
     if (!caudalCumpleMaximo) {
-      estado = "❌ No cumple con el caudal requerido";
+      estado = "No cumple con el caudal requerido";
     } else if (caudalCumpleIdeal && cdt >= bomba.altura_segura_min && cdt <= bomba.altura_segura_max) {
-      estado = "✅ Dentro del rango ideal de operación";
+      estado = "Dentro del rango ideal de operación";
       prioridad = 1;
     } else if (cdt >= bomba.altura_min && cdt <= bomba.altura_max) {
-      estado = "⚠️ Funciona, pero fuera del rango ideal";
+      estado = "Funciona, pero fuera del rango ideal";
       prioridad = 2;
     } else {
       estado = "❌ No compatible con esta bomba";

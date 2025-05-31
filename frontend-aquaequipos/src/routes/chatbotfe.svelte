@@ -4,6 +4,7 @@
   let message = '';
   let messages = [];
   let messagesContainer;
+  let limitReached = false;  // Nueva variable
 
   let userId;
 
@@ -16,29 +17,34 @@
   }
 
   async function sendMessage() {
-  if (!message.trim()) return;
+    if (!message.trim() || limitReached) return;
 
-  messages = [...messages, { from: 'user', text: message }];
-  const userMessage = message;
-  message = '';
+    messages = [...messages, { from: 'user', text: message }];
+    const userMessage = message;
+    message = '';
 
-  try {
-    const res = await fetch('http://localhost:3000/api/chatbot', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: userMessage, userId })  // <-- aquí agregamos userId
-    });
+    try {
+      const res = await fetch('http://localhost:3000/api/chatbot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: userMessage, userId })
+      });
 
-    if (!res.ok) throw new Error('Error en la respuesta del servidor');
+      if (!res.ok) throw new Error('Error en la respuesta del servidor');
 
-    const data = await res.json();
-    messages = [...messages, { from: 'bot', text: data.response }];
-  } catch (error) {
-    messages = [...messages, { from: 'bot', text: 'Error: no se pudo obtener respuesta del servidor.' }];
-    console.error(error);
+      const data = await res.json();
+
+      messages = [...messages, { from: 'bot', text: data.response }];
+
+      if (data.limitReached) {
+        limitReached = true;  // Bloqueamos input y botón
+      }
+
+    } catch (error) {
+      messages = [...messages, { from: 'bot', text: 'Error: no se pudo obtener respuesta del servidor.' }];
+      console.error(error);
+    }
   }
-}
-
 
   afterUpdate(() => {
     if (messagesContainer) {
@@ -63,8 +69,9 @@
         bind:value={message}
         on:keydown={(e) => e.key === 'Enter' && sendMessage()}
         placeholder="Escribe tu pregunta..."
+        disabled={limitReached}  
       />
-      <button on:click={sendMessage}>Enviar</button>
+      <button on:click={sendMessage} disabled={limitReached}>Enviar</button> <!-- Aquí -->
     </div>
   </div>
 {/if}
@@ -73,7 +80,6 @@
   👨🏼‍💻
   <span class="toggle-tooltip">¡Necesito Ayuda!</span>
 </button>
-
 
 <style>
   .chatbot {

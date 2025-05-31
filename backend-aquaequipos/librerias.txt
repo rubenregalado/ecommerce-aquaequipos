@@ -3,3 +3,5 @@ npm install multer //Permite recibir y procesar archivos subidos (como imágenes
 npm install openai
 npm install dotenv //Variables de entorno
 npm install openai@latest
+npm install @google/generative-ai
+

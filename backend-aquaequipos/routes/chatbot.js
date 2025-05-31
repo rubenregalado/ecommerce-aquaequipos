@@ -1,12 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const OpenAI = require('openai');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 const userAttempts = {};
+const OUT_OF_SCOPE_MESSAGE = "Solo puedo ayudarte con dudas técnicas sobre bombas de agua y los temas del formulario";
 
 router.post('/', async (req, res) => {
   const { message, userId } = req.body;
@@ -15,46 +14,68 @@ router.post('/', async (req, res) => {
 
   const saludos = ['hola', 'buenos días', 'buenas tardes', 'buenas noches', 'qué tal', 'hey'];
   if (saludos.includes(message.toLowerCase().trim())) {
-    return res.json({ response: '¡Hola! ¿En qué puedo ayudarte con tus sistemas hidráulicos?' });
+    return res.json({ response: '¡Hola! ¿En qué puedo ayudarte? Seré tu asistente para este formulario' });
   }
 
   if (!userAttempts[userId]) userAttempts[userId] = 0;
 
   try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo", // o 'gpt-3.5-turbo' si no tienes acceso a GPT-4
-      messages: [
-        {
-          role: 'system',
-          content: `Eres un asistente técnico experto en bombas y sistemas hidráulicos. Responde de forma clara y breve.`
-        },
-        { role: 'user', content: message }
-      ],
-      max_tokens: 150,
-    });
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
-    const respuesta = completion.choices[0].message.content;
+    // Prompt sin indentación extra para mejor interpretación
+    const prompt = `
+Eres un asistente técnico especializado en bombas y sistemas hidráulicos. 
+Tu única función es ayudar a los usuarios a comprender y completar el siguiente formulario de asesoría técnica para bombas de agua. 
+Solo puedes responder preguntas relacionadas con estos temas:
 
-    const noAnswerPhrases = ['no estoy seguro', 'no puedo responder', 'no sé', '¿quieres hablar con un asesor?'];
-    const noAnswer = noAnswerPhrases.some(phrase => respuesta.toLowerCase().includes(phrase));
+- Aplicación (ejemplo: Cisterna con tanque elevado, Pozo con tanque elevado, Pozo con Sistema Hidroneumático, Cisterna con Sistema Hidroneumático)
+- Fase eléctrica (monofásica, trifásica, panel solar)
+- Voltaje
+- Altura vertical (metros) (la altura que debe subir el agua)
+- Longitud de tubería (metros) (la distancia total de tubería utilizada)
+- Número de codos o accesorios en la instalación (codos, tees, válvulas, etc.)
+- Diámetro de la tubería (en pulgadas)
+- Caudal (qué es, cómo se calcula, litros por minuto - LPM, galones por minuto - GPM)
+- Cálculo de caudal por dimensiones (altura, ancho, largo, tiempo de llenado de un tanque)
+- Pérdida de fricción en tuberías
+- Selección de bombas de agua según las necesidades del usuario
 
-    if (noAnswer) {
+No debes recomendar marcas, modelos, ni lugares de compra de bombas o accesorios. No puedes dar consejos fuera de los temas del formulario.
+
+Si la pregunta del usuario no está relacionada con estos temas, responde exactamente con este mensaje:
+"${OUT_OF_SCOPE_MESSAGE}. Si necesitas otro tipo de ayuda, por favor contacta a un asesor en nuestro WhatsApp: https://wa.me/50250040468"
+
+Si el usuario insiste con temas fuera del formulario, recuérdale de forma amable:
+"Por favor, realiza preguntas solo sobre el formulario técnico. Si necesitas otro tipo de ayuda, contacta a un asesor por WhatsApp."
+
+Cuando respondas sobre los temas permitidos, sé claro, breve y usa un lenguaje sencillo que cualquier persona pueda entender, evitando tecnicismos innecesarios.
+
+Pregunta del usuario: ${message}
+`;
+
+    const result = await model.generateContent(prompt);
+
+    const respuesta = result.response.text();
+
+    // Contar intentos si la respuesta es fuera de tema
+    if (respuesta.includes(OUT_OF_SCOPE_MESSAGE)) {
       userAttempts[userId]++;
     } else {
       userAttempts[userId] = 0;
     }
 
-    if (userAttempts[userId] >= 8) {
+    if (userAttempts[userId] >= 2) {
       return res.json({
-        response: 'Parece que tienes muchas dudas. ¿Quieres que te conecte con un asesor para ayudarte mejor?'
+        response: 'Has excedido el número máximo de preguntas permitidas fuera del tema. Por favor, contacta a un asesor para más ayuda.',
+        limitReached: true
       });
     }
 
-    res.json({ response: respuesta });
+    res.json({ response: respuesta, limitReached: false });
 
   } catch (error) {
-    console.error('Error OpenAI:', error);
-    res.status(500).json({ response: 'Error en el servidor de IA.' });
+    console.error('Error Gemini:', error);
+    res.status(500).json({ response: 'Error en el servidor de IA.', limitReached: false });
   }
 });
 
