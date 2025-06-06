@@ -441,8 +441,12 @@
     <p class="text-sm text-gray-600 mb-1">{bomba.estado}</p>
     <p class="text-sm text-gray-700 mb-1 italic">{bomba.nota_tecnica}</p>
     <p class="text-sm mt-1">
-      🔧 <strong>Rendimiento ideal:</strong> {bomba.rendimiento_sugerido.caudal_aproximado_lmin} L/min a {bomba.rendimiento_sugerido.altura_aproximada_m} m
-    </p>
+  🔧 <strong>Rendimiento estimado a {CDT_calculada} m:</strong>
+  {bomba.rendimiento_sugerido.caudal_estimado_a_esa_altura_lmin} L/min<br>
+  🎯 <strong>Rango ideal de bomba:</strong>
+  {bomba.rendimiento_sugerido.caudal_aproximado_lmin} L/min a {bomba.rendimiento_sugerido.altura_aproximada_m} m
+</p>
+
 
     {#if bomba.advertencia}
       <p class="text-red-600 text-sm font-semibold">{bomba.advertencia}</p>
