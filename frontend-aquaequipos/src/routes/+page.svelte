@@ -23,6 +23,7 @@
     let productos: Producto[] = [];
     let cargandoProductos = true;
     let errorProductos = "";
+    
 
     onMount(async () => {
       try {
@@ -403,8 +404,8 @@
     `${index + 1}`,
     bomba.nombre,
     bomba.estado,
-    `${bomba.rendimiento_sugerido.caudal_aproximado_lmin} L/min a ${bomba.rendimiento_sugerido.altura_aproximada_m} m` +
-      (bomba.advertencia ? `\n⚠️ ${bomba.advertencia}` : ''),
+     `${bomba.rendimiento_sugerido.caudal_estimado_a_esa_altura_lmin} L/min a ${resultados.CDT_calculada} m` +
+    (bomba.advertencia ? `\n⚠️ ${bomba.advertencia}` : ''),
     bomba.price ? `Q${bomba.price}.00` : 'N/A',
     '' // Celda vacía para la imagen, que se dibujará con didDrawCell
   ]);
@@ -736,8 +737,12 @@
 
     <p class="text-sm text-gray-700 mb-1 italic">{bomba.nota_tecnica}</p>
     <p class="text-sm mt-1">
-      🔧 <strong>Rendimiento ideal:</strong> {bomba.rendimiento_sugerido.caudal_aproximado_lmin} L/min a {bomba.rendimiento_sugerido.altura_aproximada_m} m
+    🔧 <strong>El rendimiento estimado de esta bomba es de {bomba.rendimiento_sugerido.caudal_estimado_a_esa_altura_lmin} L/min 
+    a {resultados.CDT_calculada} m</strong><br>
+    🎯 <strong>Rango ideal de bomba:</strong>
+    {bomba.rendimiento_sugerido.caudal_aproximado_lmin} L/min a {bomba.rendimiento_sugerido.altura_aproximada_m} m
     </p>
+
 
     {#if bomba.advertencia}
       <p class="text-red-600 text-sm font-semibold">{bomba.advertencia}</p>
