@@ -8,6 +8,12 @@
   import ModalDatos from '$lib/components/ModalDatos.svelte';
   import Chatbot from '../routes/chatbotfe.svelte';
   import '$lib/pdf-fonts/NotoEmoji-normal';
+  import ModalCalculoFlujo from '$lib/components/ModalCalculoFlujo.svelte';
+  import ModalPerdidaFriccion from '$lib/components/ModalPerdidaFriccion.svelte';
+  import ModalCalculoCaudal from '$lib/components/ModalCalculoCaudal.svelte';
+  import ModalResultados from '$lib/components/ModalResultados.svelte';
+  
+  
 
   let modalOpen = false;
   let datosCliente = null;
@@ -38,12 +44,6 @@
       }
     });
 
-//--------------- HASTA ACÁ MODIFIQUÉ -------------
-  import ModalCalculoFlujo from '$lib/components/ModalCalculoFlujo.svelte';
-  import ModalPerdidaFriccion from '$lib/components/ModalPerdidaFriccion.svelte';
-  import ModalCalculoCaudal from '$lib/components/ModalCalculoCaudal.svelte';
-  import ModalResultados from '$lib/components/ModalResultados.svelte';
-
   let mostrarModalFriccion = false;
   let mostrarModalFlujo = false;
   let mostrarModalCaudalDimensiones = false;
@@ -65,8 +65,6 @@
   let cargando = false;
   let error = "";
 
-
-  // Función para convertir URL de imagen a Base64
     async function toDataURL(url) {
       const response = await fetch(url);
       const blob = await response.blob();
@@ -91,7 +89,6 @@
     }
 
     async function onDescargarPDF() {
-      //await prepararImagenes();
       descargarPDF();
     }
 
@@ -120,11 +117,11 @@
       doc.setFontSize(12);
       doc.setTextColor('#000');
       doc.text(`NIT: ${datosCliente.nit}`, marginX, y);
-      doc.text(`CORREO: ${datosCliente.correo}`, marginX + 90, y);
+      doc.text(`CELULAR: ${datosCliente.celular}`, marginX + 90, y);
       y += 7;
 
-      doc.text(`Dirección: ${datosCliente.direccion}`, marginX, y);
-      doc.text(`Nombre: ${datosCliente.nombre}`, marginX + 90, y);
+      doc.text(`DIRECCIÓN: ${datosCliente.direccion}`, marginX, y);
+      doc.text(`NOMBRE: ${datosCliente.nombre}`, marginX + 90, y);
       y += 7;
 
       doc.setDrawColor('#003366');
@@ -233,7 +230,7 @@
   const formData = new FormData();
   formData.append('pdf', pdfBlob, 'cotizacion.pdf');
   formData.append('nombre', datosCliente?.nombre || 'Usuario');
-  formData.append('correo', datosCliente?.correo || 'sincorreo@ejemplo.com');
+  formData.append('celular', datosCliente?.celular || 'sincorreo@ejemplo.com');
 
   try {
     const res = await fetch('http://localhost:3000/api/cotizacion/enviar-cotizacion', {
@@ -268,7 +265,7 @@
 
     //await prepararImagenes();
     descargarPDF(datosCliente); // descarga local para el usuario
-    await enviarPDFPorCorreo(); // envío a tu correo
+    await enviarPDFPorCorreo(); // envío al correo
   }
 
   async function enviarFormulario(event: Event) {
@@ -365,9 +362,9 @@
   doc.setFontSize(12);
   doc.setTextColor('#000');
 
-  // Primera línea: NIT y correo
+  // Primera línea: NIT y celular
   doc.text(`NIT: ${datosCliente.nit}`, marginX, y);
-  doc.text(`CORREO: ${datosCliente.correo}`, marginX + 90, y); // Ajusta 90 según el ancho de tu hoja y tus datos
+  doc.text(`CELULAR: ${datosCliente.celular}`, marginX + 90, y); // Ajusta 90 según el ancho de tu hoja y tus datos
   y += 7;
 
   // Segunda línea: Nombre y Dirección
@@ -598,14 +595,35 @@
 
       {#if voltaje}
       <div>
-        <label class="block font-medium mb-1 text-gray-700">Altura vertical (m)</label>
+        <label class="block font-medium mb-1 text-gray-700 flex items-center space-x-1">
+          <span>Altura vertical (m)</span>
+          <span class="relative group cursor-pointer inline-flex items-center">
+            <span class="w-5 h-5 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center select-none">?</span>
+            <div
+              class="absolute z-10 w-64 text-sm text-white bg-gray-700 rounded p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 top-1/2 left-full ml-2 -translate-y-1/2 whitespace-normal"
+            >
+              Altura donde se encuentra el tanque que desea llenar desde la cisterna/pozo
+            </div>
+          </span>
+        </label>
         <input type="number" bind:value={altura_vertical} required class="w-full border rounded px-3 py-2" />
       </div>
+
       {/if}
 
       {#if altura_vertical}
       <div>
-        <label class="block font-medium mb-1 text-gray-700">Longitud de tubería (m)</label>
+        <label class="block font-medium mb-1 text-gray-700 flex items-center space-x-1">
+          <span>Longitud de tubería (m)</span>
+          <span class="relative group cursor-pointer inline-flex items-center">
+            <span class="w-5 h-5 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center select-none">?</span>
+            <div
+              class="absolute z-10 w-64 text-sm text-white bg-gray-700 rounded p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 top-1/2 left-full ml-2 -translate-y-1/2 whitespace-normal"
+            >
+              Cantidad, en metros, de tubería utilizada hasta llegar al tanque
+            </div>
+          </span>
+        </label>
         <input type="number" bind:value={longitud_tuberia} required class="w-full border rounded px-3 py-2" />
       </div>
       {/if}
@@ -650,16 +668,17 @@
               <input
                 type="number"
                 bind:value={caudal_manual}
-                class="border rounded px-3 py-2 w-full"
+                class="w-75 border px-2 h-9 text-sm rounded"
                 placeholder="Ingrese el caudal en L/min o calcúlelo"
               />
-              <button
-                type="button"
-                on:click={() => mostrarModalCaudalDimensiones = true}
-                class="bg-gray-700 text-white font-bold px-3 py-2 rounded hover:bg-gray-800"
-              >
-                Calcular Caudal
-              </button>
+             <button
+              on:click={() => mostrarModalCaudalDimensiones = true}
+              class="px-6 h-9 text-base font-bold rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow transition-all duration-200"
+              style="letter-spacing: 1px;"
+            >
+              CALCULAR CAUDAL
+            </button>
+
             </div>
           </div>
         {:else if aplicacion === 'pozo_hidroneumatico' || aplicacion === 'cisterna_hidroneumatico'}
@@ -677,7 +696,7 @@
                 on:click={() => mostrarModalFlujo = true}
                 class="bg-gray-700 text-white font-bold px-3 py-2 rounded hover:bg-gray-800"
               >
-                Calcular Flujo
+                CALCULAR FLUJO
               </button>
             </div>
           </div>
@@ -693,7 +712,7 @@
             </svg>
             Cargando...
           {:else}
-            Consultar recomendación
+            CONSULTAR RECOMENDACIONES
           {/if}
         </button>
       </div>
@@ -762,7 +781,7 @@
   </div>
 </main>
 
-<Chatbot />
+<Chatbot id="chatbot-tour" />
 
 
 <a href="https://wa.me/50250040468" class="whatsapp-float" target="_blank" aria-label="Chatea por WhatsApp">

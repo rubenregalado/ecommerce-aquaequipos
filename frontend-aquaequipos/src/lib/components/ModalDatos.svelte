@@ -4,24 +4,16 @@
   const dispatch = createEventDispatcher();
 
   let nit = '';
-  let correo = '';
+  let celular = '';
   let nombre = '';
   let direccion = '';
-  let correoInvalido = false;
-
-  function validarCorreo(email) {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return regex.test(email);
-  }
 
   function submitForm() {
-    correoInvalido = !validarCorreo(correo);
-
-    if (!nombre || correoInvalido) {
+    if (!nombre) {
       return;
     }
 
-    dispatch('submit', { nit, correo, nombre, direccion });
+    dispatch('submit', { nit, celular, nombre, direccion });
   }
 
   function closeModal() {
@@ -52,11 +44,8 @@
           <input id="nit" type="text" bind:value={nit} placeholder="Ingrese NIT" />
         </div>
         <div class="field-group">
-          <label for="correo">Correo</label>
-          <input id="correo" type="email" bind:value={correo} required placeholder="Ingrese correo electrónico" />
-          {#if correoInvalido}
-            <p class="error">Ingrese un correo válido (ej: nombre@dominio.com)</p>
-          {/if}
+          <label for="celular">Celular</label>
+          <input id="celular" type="tel" bind:value={celular} placeholder="Ingrese número celular" />
         </div>
         <div class="field-group">
           <label for="nombre">Nombre</label>
