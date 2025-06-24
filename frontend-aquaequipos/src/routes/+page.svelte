@@ -507,24 +507,28 @@
 />
 
 <main class="min-h-screen bg-gray-50 p-6">
-  <div class="max-w-xl mx-auto bg-white shadow-lg rounded-lg p-6 space-y-6 border border-blue-100">
+  <div class="max-w-6xl mx-auto bg-white shadow-lg rounded-lg p-6 space-y-6 border border-blue-100">
     <div class="flex justify-center">
       <img src="/logo-principal.svg" alt="Logo AquaEquipos" class="h-20" />
     </div>
     <h1 class="text-3xl font-bold text-[#0099CC] text-center">Asesoría Técnica para Bombas de Agua</h1>
 
-    <form class="space-y-4" on:submit={enviarFormulario}>
-      <div>
-        <label class="block font-medium mb-1 text-gray-700 flex items-center gap-2">
-          Aplicación
+    <!-- GRID de dos columnas -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+      <!-- FORMULARIO -->
+      <form class="space-y-4" on:submit={enviarFormulario}>
+        <div class="mb-4">
+        <div class="flex justify-between items-center mb-1">
+          <label class="block font-medium text-gray-700">Aplicación</label>
           <span class="relative group cursor-pointer">
             <span class="w-5 h-5 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center">?</span>
-            <div class="absolute z-10 w-64 text-sm text-white bg-gray-700 rounded p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 -top-2 left-6">
+            <div class="absolute z-10 w-64 text-sm text-white bg-gray-700 rounded p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 left-full top-1/2 -translate-y-1/2 ml-2">
               ¿Qué trabajo necesita que realice el equipo de bombeo? Esto ayuda a elegir la bomba adecuada: por ejemplo, 
               si es para llenar un tanque desde una cisterna o extraer agua de un pozo con presión.
             </div>
           </span>
-        </label>
+        </div>
         <select bind:value={aplicacion} required class="w-full border rounded px-3 py-2">
           <option value="" disabled selected>Seleccione una opción</option>
           <option value="cisterna_tanque">Cisterna con tanque elevado</option>
@@ -535,12 +539,13 @@
       </div>
 
       {#if aplicacion}
-      <div>
-        <label class="block font-medium mb-1 text-gray-700 flex items-center gap-2">
-          Fase eléctrica
+      <!-- Fase eléctrica -->
+      <div class="mb-4">
+        <div class="flex justify-between items-center mb-1">
+          <label class="block font-medium text-gray-700">Fase eléctrica</label>
           <span class="relative group cursor-pointer">
             <span class="w-5 h-5 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center">?</span>
-            <div class="absolute z-10 w-64 text-sm text-white bg-gray-700 rounded p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 -top-2 left-6">
+            <div class="absolute z-10 w-64 text-sm text-white bg-gray-700 rounded p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 left-full top-1/2 -translate-y-1/2 ml-2">
               ¿Qué tipo de energía utilizará la bomba? 
               La fase eléctrica depende del tipo de instalación: uso en casa, industrial o uso de paneles solares.
               <br/>• Monofásico: común en casas. 
@@ -548,7 +553,7 @@
               <br/>• Solar: si usará paneles solares.
             </div>
           </span>
-        </label>
+        </div>
         <select bind:value={fase} required class="w-full border rounded px-3 py-2">
           <option value="" disabled selected>Seleccione la fase</option>
           <option value="monofasico">Monofásico</option>
@@ -559,74 +564,69 @@
       {/if}
 
       {#if fase}
-      <div>
-        <label class="block font-medium mb-1 text-gray-700">Voltaje</label>
-        <div>
-          <label class="block font-medium mb-1 text-gray-700 flex items-center gap-2">
-            ¿Qué tipo de voltaje necesita la bomba?
-            <span class="relative group cursor-pointer">
-              <span class="w-5 h-5 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center">?</span>
-              <div class="absolute z-10 w-64 text-sm text-white bg-gray-700 rounded p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 -top-2 left-6">
-                El voltaje depende del tipo de conexión eléctrica disponible:
-                <br/>• 110V y 220V: comunes en casas.
-                <br/>• 220V y 480V: para industrias.
-                <br/>• 12V / 24V / Inversor: si usa energía solar.
-              </div>
-            </span>
-          </label>
-          <select bind:value={voltaje} required class="w-full border rounded px-3 py-2">
-            <option value="" disabled selected>Seleccione el voltaje</option>
-            {#if fase === 'monofasico'}
-              <option value="110V">110V</option>
-              <option value="220V">220V</option>
-            {:else if fase === 'trifasico'}
-              <option value="220V">220V</option>
-              <option value="480V">480V</option>
-            {:else if fase === 'solar'}
-              <option value="12V">12V</option>
-              <option value="24V">24V</option>
-              <option value="Inversor">Inversor</option>
-            {/if}
-          </select>
+      <!-- Voltaje -->
+      <div class="mb-4">
+        <div class="flex justify-between items-center mb-1">
+          <label class="block font-medium text-gray-700">Voltaje</label>
+          <span class="relative group cursor-pointer">
+            <span class="w-5 h-5 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center">?</span>
+            <div class="absolute z-10 w-64 text-sm text-white bg-gray-700 rounded p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 left-full top-1/2 -translate-y-1/2 ml-2">
+              El voltaje depende del tipo de conexión eléctrica disponible:
+              <br/>• 110V y 220V: comunes en casas.
+              <br/>• 220V y 480V: para industrias.
+              <br/>• 12V / 24V / Inversor: si usa energía solar.
+            </div>
+          </span>
         </div>
-        
+        <select bind:value={voltaje} required class="w-full border rounded px-3 py-2">
+          <option value="" disabled selected>Seleccione el voltaje</option>
+          {#if fase === 'monofasico'}
+            <option value="110V">110V</option>
+            <option value="220V">220V</option>
+          {:else if fase === 'trifasico'}
+            <option value="220V">220V</option>
+            <option value="480V">480V</option>
+          {:else if fase === 'solar'}
+            <option value="12V">12V</option>
+            <option value="24V">24V</option>
+            <option value="Inversor">Inversor</option>
+          {/if}
+        </select>
       </div>
       {/if}
 
       {#if voltaje}
-      <div>
-        <label class="block font-medium mb-1 text-gray-700 flex items-center space-x-1">
-          <span>Altura vertical (m)</span>
-          <span class="relative group cursor-pointer inline-flex items-center">
-            <span class="w-5 h-5 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center select-none">?</span>
-            <div
-              class="absolute z-10 w-64 text-sm text-white bg-gray-700 rounded p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 top-1/2 left-full ml-2 -translate-y-1/2 whitespace-normal"
-            >
-              Altura donde se encuentra el tanque que desea llenar desde la cisterna/pozo
+      <!-- Altura vertical -->
+      <div class="mb-4">
+        <div class="flex justify-between items-center mb-1">
+          <label class="block font-medium text-gray-700">Altura vertical (m)</label>
+          <span class="relative group cursor-pointer">
+            <span class="w-5 h-5 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center">?</span>
+            <div class="absolute z-10 w-64 text-sm text-white bg-gray-700 rounded p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 left-full top-1/2 -translate-y-1/2 ml-2">
+              Altura donde se encuentra el tanque que desea llenar desde la cisterna/pozo.
             </div>
           </span>
-        </label>
+        </div>
         <input type="number" bind:value={altura_vertical} required class="w-full border rounded px-3 py-2" />
       </div>
-
       {/if}
 
       {#if altura_vertical}
-      <div>
-        <label class="block font-medium mb-1 text-gray-700 flex items-center space-x-1">
-          <span>Longitud de tubería (m)</span>
-          <span class="relative group cursor-pointer inline-flex items-center">
-            <span class="w-5 h-5 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center select-none">?</span>
-            <div
-              class="absolute z-10 w-64 text-sm text-white bg-gray-700 rounded p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 top-1/2 left-full ml-2 -translate-y-1/2 whitespace-normal"
-            >
-              Cantidad, en metros, de tubería utilizada hasta llegar al tanque
+      <!-- Longitud de tubería -->
+      <div class="mb-4">
+        <div class="flex justify-between items-center mb-1">
+          <label class="block font-medium text-gray-700">Longitud Horizontal de tubería (m)</label>
+          <span class="relative group cursor-pointer">
+            <span class="w-5 h-5 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center">?</span>
+            <div class="absolute z-10 w-64 text-sm text-white bg-gray-700 rounded p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 left-full top-1/2 -translate-y-1/2 ml-2">
+              Cantidad, en metros, de tubería utilizada hasta llegar al tanque.
             </div>
           </span>
-        </label>
+        </div>
         <input type="number" bind:value={longitud_tuberia} required class="w-full border rounded px-3 py-2" />
       </div>
       {/if}
+
 
       {#if longitud_tuberia}
         <div>
@@ -716,70 +716,64 @@
           {/if}
         </button>
       </div>
+      </form>
 
+      <!-- RESULTADOS -->
       {#if resultados}
-      
-      <div class="mt-8 bg-[#E0F7FA] border border-[#B2EBF2] p-4 rounded-lg">
+        <div class="bg-[#E0F7FA] border border-[#B2EBF2] p-4 rounded-lg h-fit">
+          <h2 class="text-xl font-bold text-[#0099CC] mb-4">Recomendaciones de Bombas</h2>
+          <p class="text-sm text-gray-700 mb-2">CDT Calculada: <strong>{resultados.CDT_calculada} m</strong></p>
+          <p class="text-sm text-gray-700 mb-4">Caudal estimado: <strong>{resultados.caudal_estimado} L/min</strong></p>
 
-        <h2 class="text-xl font-bold text-[#0099CC] mb-4">Recomendaciones de Bombas</h2>
-        <p class="text-sm text-gray-700 mb-2">CDT Calculada: <strong>{resultados.CDT_calculada} m</strong></p>
-        <p class="text-sm text-gray-700 mb-4">Caudal estimado: <strong>{resultados.caudal_estimado} L/min</strong></p>
-        <div class="flex justify-center mt-4">
-         
-          
-          <button 
-            type="button" 
-            on:click={onAbrirModal} 
-            class="bg-blue-700 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded">
-            Descargar Cotización
-          </button>
+          <div class="flex justify-center mt-4">
+            <button 
+              type="button" 
+              on:click={onAbrirModal} 
+              class="bg-blue-700 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded">
+              Descargar Cotización
+            </button>
+          </div>
 
+          {#each resultados.resultados as bomba}
+            <div class="border rounded p-4 my-4 bg-white shadow-sm">
+              <h3 class="text-lg font-semibold text-[#0099CC]">{bomba.nombre}</h3>
 
+              {#if bomba.image}
+                <img src={bomba.image} alt={"Imagen de " + bomba.nombre} class="w-40 h-40 object-contain my-2 mx-auto" />
+              {/if}
+
+              {#if bomba.price}
+                <p class="text-xl font-bold text-green-700 mb-2 text-center">Q{bomba.price}.00</p>
+              {/if}
+
+              <p class="text-sm font-semibold mb-1 {bomba.estado === 'Dentro del rango ideal de operación' ? 'text-green-700' : bomba.estado === 'No cumple con el caudal requerido' ? 'text-red-600' : 'text-yellow-600'}">
+                {bomba.estado}
+              </p>
+
+              <p class="text-sm text-gray-700 mb-1 italic">{bomba.nota_tecnica}</p>
+              <p class="text-sm mt-1">
+                🔧 <strong>{bomba.rendimiento_sugerido.caudal_estimado_a_esa_altura_lmin} L/min</strong> a <strong>{resultados.CDT_calculada} m</strong><br>
+                🎯 <strong>Rango ideal:</strong> {bomba.rendimiento_sugerido.caudal_aproximado_lmin} L/min a {bomba.rendimiento_sugerido.altura_aproximada_m} m
+              </p>
+
+              {#if bomba.advertencia}
+                <p class="text-red-600 text-sm font-semibold">{bomba.advertencia}</p>
+              {/if}
+
+              <a href={bomba.url} target="_blank" class="inline-block mt-2 text-[#0099CC] hover:underline">
+                Ver producto en tienda 🛒
+              </a>
+            </div>
+          {/each}
         </div>
-        {#each resultados.resultados as bomba}
-  <div class="border rounded p-4 mb-4 bg-white shadow-sm">
-    <h3 class="text-lg font-semibold text-[#0099CC]">{bomba.nombre}</h3>
-
-    <div class="flex flex-col items-center">
-      {#if bomba.image}
-        <img src={bomba.image} alt={"Imagen de " + bomba.nombre} class="w-40 h-40 object-contain my-2 rounded" />
-      {/if}
-      {#if bomba.price}
-        <p class="text-xl font-bold text-green-700 mb-2">Q{bomba.price}.00</p>
-      {/if}
-    </div>
-
-    <p 
-      class="text-sm font-semibold mb-1 {bomba.estado === 'Dentro del rango ideal de operación' ? 'text-green-700' : bomba.estado === 'No cumple con el caudal requerido' ? 'text-red-600' : 'text-yellow-600'}">
-      {bomba.estado}
-    </p>
-
-    <p class="text-sm text-gray-700 mb-1 italic">{bomba.nota_tecnica}</p>
-    <p class="text-sm mt-1">
-    🔧 <strong>El rendimiento estimado de esta bomba es de {bomba.rendimiento_sugerido.caudal_estimado_a_esa_altura_lmin} L/min 
-    a {resultados.CDT_calculada} m</strong><br>
-    🎯 <strong>Rango ideal de bomba:</strong>
-    {bomba.rendimiento_sugerido.caudal_aproximado_lmin} L/min a {bomba.rendimiento_sugerido.altura_aproximada_m} m
-    </p>
-
-
-    {#if bomba.advertencia}
-      <p class="text-red-600 text-sm font-semibold">{bomba.advertencia}</p>
-    {/if}
-
-    <a href={bomba.url} target="_blank" class="inline-block mt-2 text-[#0099CC] hover:underline">
-      Ver producto en tienda 🛒
-    </a>
-  </div>
-{/each}
-
-
-      </div>
+      {:else}
+        <div></div>
       {/if}
 
-    </form>
+    </div> <!-- FIN del grid -->
   </div>
 </main>
+
 
 <Chatbot id="chatbot-tour" />
 
