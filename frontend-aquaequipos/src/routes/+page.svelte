@@ -13,6 +13,16 @@
   import ModalCalculoCaudal from '$lib/components/ModalCalculoCaudal.svelte';
   import ModalResultados from '$lib/components/ModalResultados.svelte';
   
+
+    function fadeIn(node: HTMLElement) {
+      onMount(() => {
+        requestAnimationFrame(() => {
+          node.classList.remove('opacity-0', 'translate-y-4');
+          node.classList.add('opacity-100', 'translate-y-0');
+        });
+      });
+    }
+  
   
 
   let modalOpen = false;
@@ -507,20 +517,27 @@
 />
 
 <main class="min-h-screen bg-gray-50 p-6">
-  <div class="max-w-6xl mx-auto bg-white shadow-lg rounded-lg p-6 space-y-6 border border-blue-100">
-    <div class="flex justify-center">
+  <!-- Contenedor exclusivo para encabezado -->
+  <div style="background-color: #EFF6FF;" class="border border-[#116892] rounded-lg p-6 shadow-md hover:shadow-xl transition-all duration-300 mb-6">
+    <div class="flex justify-center mb-4">
       <img src="/logo-principal.svg" alt="Logo AquaEquipos" class="h-20" />
     </div>
-    <h1 class="text-3xl font-bold text-[#0099CC] text-center">Asesoría Técnica para Bombas de Agua</h1>
+    <h1 class="text-3xl font-bold text-[#116892] text-center">Asesoría Técnica para Bombas de Agua</h1>
+  </div>
 
-    <!-- GRID de dos columnas -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- GRID adaptativo -->
+    <div
+      class={`grid gap-6 transition-all duration-500 ease-in-out
+        ${resultados ? 'lg:grid-cols-2' : ''}
+      `}
+    >
 
+    <div class="w-full min-w-[50%] max-w-4xl mx-auto bg-blue-50 rounded-lg p-6 shadow-md">
       <!-- FORMULARIO -->
       <form class="space-y-4" on:submit={enviarFormulario}>
         <div class="mb-4">
         <div class="flex justify-between items-center mb-1">
-          <label class="block font-medium text-gray-700">Aplicación</label>
+          <label class="block font-medium" style="color: #116892; font-size: 1.375rem; display: inline-block;">Aplicación</label>
           <span class="relative group cursor-pointer">
             <span class="w-5 h-5 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center">?</span>
             <div class="absolute z-10 w-64 text-sm text-white bg-gray-700 rounded p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 left-full top-1/2 -translate-y-1/2 ml-2">
@@ -542,7 +559,7 @@
       <!-- Fase eléctrica -->
       <div class="mb-4">
         <div class="flex justify-between items-center mb-1">
-          <label class="block font-medium text-gray-700">Fase eléctrica</label>
+          <label class="block font-medium" style="color: #116892; font-size: 1.375rem; display: inline-block;">Fase Eléctrica</label>
           <span class="relative group cursor-pointer">
             <span class="w-5 h-5 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center">?</span>
             <div class="absolute z-10 w-64 text-sm text-white bg-gray-700 rounded p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 left-full top-1/2 -translate-y-1/2 ml-2">
@@ -567,7 +584,7 @@
       <!-- Voltaje -->
       <div class="mb-4">
         <div class="flex justify-between items-center mb-1">
-          <label class="block font-medium text-gray-700">Voltaje</label>
+          <label class="block font-medium" style="color: #116892; font-size: 1.375rem; display: inline-block;">Voltaje</label>
           <span class="relative group cursor-pointer">
             <span class="w-5 h-5 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center">?</span>
             <div class="absolute z-10 w-64 text-sm text-white bg-gray-700 rounded p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 left-full top-1/2 -translate-y-1/2 ml-2">
@@ -599,7 +616,7 @@
       <!-- Altura vertical -->
       <div class="mb-4">
         <div class="flex justify-between items-center mb-1">
-          <label class="block font-medium text-gray-700">Altura vertical (m)</label>
+          <label class="block font-medium" style="color: #116892; font-size: 1.375rem; display: inline-block;">Altura Vertical (m)</label>
           <span class="relative group cursor-pointer">
             <span class="w-5 h-5 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center">?</span>
             <div class="absolute z-10 w-64 text-sm text-white bg-gray-700 rounded p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 left-full top-1/2 -translate-y-1/2 ml-2">
@@ -615,7 +632,7 @@
       <!-- Longitud de tubería -->
       <div class="mb-4">
         <div class="flex justify-between items-center mb-1">
-          <label class="block font-medium text-gray-700">Longitud Horizontal de tubería (m)</label>
+          <label class="block font-medium" style="color: #116892; font-size: 1.375rem; display: inline-block;">Longitud Horizontal de tubería (m)</label>
           <span class="relative group cursor-pointer">
             <span class="w-5 h-5 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center">?</span>
             <div class="absolute z-10 w-64 text-sm text-white bg-gray-700 rounded p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 left-full top-1/2 -translate-y-1/2 ml-2">
@@ -630,7 +647,8 @@
 
       {#if longitud_tuberia}
         <div>
-          <label class="block font-medium mb-1 text-gray-700">Número de accesorios</label>
+          
+          <label class="block font-medium" style="color: #116892; font-size: 1.375rem; display: inline-block;">Número de accesorios</label>
           <input
             type="number"
             bind:value={numero_codos}
@@ -644,7 +662,7 @@
 
       {#if numero_codos}
       <div>
-        <label class="block font-medium mb-1 text-gray-700">Diámetro de la tubería (en pulgadas)</label>
+        <label class="block font-medium" style="color: #116892; font-size: 1.375rem; display: inline-block;">Diámetro de la Tubería (en pulgadas)</label>
         <select bind:value={diametro_tuberia_pulgadas} required class="w-full border rounded px-3 py-2">
           <option value="" disabled selected>Seleccione el diámetro</option>
           <option value="0.5">1/2"</option>
@@ -663,7 +681,7 @@
       {#if diametro_tuberia_pulgadas}
         {#if aplicacion === 'cisterna_tanque' || aplicacion === 'pozo_tanque'}
           <div class="space-y-2">
-            <label class="block font-medium text-gray-700 mb-1">Caudal requerido (L/min)</label>
+            <label class="block font-medium" style="color: #116892; font-size: 1.375rem; display: inline-block;">Caudal Requerido (L/min)</label>
             <div class="flex items-center space-x-2">
               <input
                 type="number"
@@ -673,8 +691,7 @@
               />
              <button
               on:click={() => mostrarModalCaudalDimensiones = true}
-              class="px-6 h-9 text-base font-bold rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow transition-all duration-200"
-              style="letter-spacing: 1px;"
+              class="bg-[#116892] hover:bg-[#3a8bbf] text-white font-bold px-4 py-2 rounded"
             >
               CALCULAR CAUDAL
             </button>
@@ -683,7 +700,7 @@
           </div>
         {:else if aplicacion === 'pozo_hidroneumatico' || aplicacion === 'cisterna_hidroneumatico'}
           <div class="space-y-2">
-            <label class="block font-medium text-gray-700 mb-1">Flujo requerido (L/min)</label>
+            <label class="block font-medium" style="color: #116892; font-size: 1.375rem; display: inline-block;">Flujo Requerido (L/min)</label>
             <div class="flex items-center space-x-2">
               <input
                 type="number"
@@ -694,17 +711,18 @@
               <button
                 type="button"
                 on:click={() => mostrarModalFlujo = true}
-                class="bg-gray-700 text-white font-bold px-3 py-2 rounded hover:bg-gray-800"
+                class="bg-[#116892] hover:bg-[#3a8bbf] text-white font-bold px-4 py-2 rounded"
               >
                 CALCULAR FLUJO
               </button>
+
             </div>
           </div>
         {/if}
       {/if}
 
       <div>
-        <button type="submit" class="w-full bg-[#0099CC] hover:bg-blue-700 text-white font-bold py-2 px-4 rounded flex justify-center items-center" disabled={cargando}>
+        <button type="submit" class="w-full bg-[#116892] hover:bg-[#3a8bbf] text-white font-bold py-2 px-4 rounded flex justify-center items-center" disabled={cargando}>
           {#if cargando}
             <svg class="animate-spin h-5 w-5 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -717,23 +735,34 @@
         </button>
       </div>
       </form>
+      </div>
 
       <!-- RESULTADOS -->
       {#if resultados}
-        <div class="bg-[#E0F7FA] border border-[#B2EBF2] p-4 rounded-lg h-fit">
-          <h2 class="text-xl font-bold text-[#0099CC] mb-4">Recomendaciones de Bombas</h2>
-          <p class="text-sm text-gray-700 mb-2">CDT Calculada: <strong>{resultados.CDT_calculada} m</strong></p>
-          <p class="text-sm text-gray-700 mb-4">Caudal estimado: <strong>{resultados.caudal_estimado} L/min</strong></p>
+       <div id="resultados-bombas" class="bg-blue-50 rounded-lg p-6 shadow-md opacity-0 translate-y-4 transition-all duration-500 ease-out animate-fadein">
+          <div class="bg-white border border-[#116892] rounded-lg p-6 shadow-md hover:shadow-xl transition-all duration-300">
+            <div class="flex items-center gap-2 mb-4">
+              <h2 class="text-xl font-bold text-[#116892]">Recomendaciones de Bombas</h2>
+            </div>
+            <p class="text-xl text-[#116892] mb-1">
+              CDT Calculada: <strong>{resultados.CDT_calculada} m</strong>
+            </p>
+            <p class="text-xl text-[#116892]">
+              Caudal estimado: <strong>{resultados.caudal_estimado} L/min</strong>
+            </p>
+          </div>
+
+
 
           <div class="flex justify-center mt-4">
             <button 
               type="button" 
               on:click={onAbrirModal} 
-              class="bg-blue-700 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded">
+              class="bg-[#116892] hover:bg-[#3a8bbf] text-white font-bold py-2 px-4 rounded">
               Descargar Cotización
             </button>
           </div>
-
+          
           {#each resultados.resultados as bomba}
             <div class="border rounded p-4 my-4 bg-white shadow-sm">
               <h3 class="text-lg font-semibold text-[#0099CC]">{bomba.nombre}</h3>
@@ -766,13 +795,12 @@
             </div>
           {/each}
         </div>
-      {:else}
-        <div></div>
       {/if}
 
-    </div> <!-- FIN del grid -->
-  </div>
+    </div>
 </main>
+
+
 
 
 <Chatbot id="chatbot-tour" />
@@ -784,6 +812,22 @@
 </a>
 
 <style>
+
+  @keyframes fadein {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fadein {
+    animation: fadein 2s ease-out forwards;
+  }
+
 .whatsapp-float {
   position: fixed;
   bottom: 10px;
