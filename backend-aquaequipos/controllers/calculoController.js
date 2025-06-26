@@ -1,11 +1,39 @@
 const WooCommerceApi = require("../utils/woocommerceClient");
 const { parseAtributosWoo } = require("../utils/woocommerceParser");
 
-function calcularCDT({ altura_vertical, longitud_tuberia, numero_codos, diametro_tuberia }) {
-  const diametro_metros = diametro_tuberia * 0.0254;
-  const perdidas_por_rozamiento = (longitud_tuberia / diametro_metros) * 0.02;
-  const perdidas_por_codos = numero_codos * 0.5;
-  return parseFloat((altura_vertical + perdidas_por_rozamiento + perdidas_por_codos).toFixed(2));
+function calcularCDT({ altura_vertical, longitud_tuberia, numero_codos, diametro_tuberia, caudal_lmin }) {
+  // Validaciones básicas
+  if (
+    typeof altura_vertical !== 'number' || altura_vertical <= 0 ||
+    typeof longitud_tuberia !== 'number' || longitud_tuberia < 0 ||
+    typeof numero_codos !== 'number' || numero_codos < 0 ||
+    typeof diametro_tuberia !== 'number' || diametro_tuberia <= 0 ||
+    typeof caudal_lmin !== 'number' || caudal_lmin <= 0
+  ) {
+    console.warn("⚠️ Parámetros inválidos para calcular CDT");
+    return null;
+  }
+
+  const caudal_m3s = caudal_lmin / 1000 / 60; // de L/min a m³/s
+  const diametro_m = diametro_tuberia * 0.0254; // de pulgadas a metros
+
+  // Evitar división por cero
+  if (diametro_m === 0) {
+    console.warn("⚠️ Diámetro convertido a metros es 0, no se puede calcular pérdida");
+    return null;
+  }
+
+  const area = Math.PI * Math.pow(diametro_m / 2, 2);
+  const velocidad = caudal_m3s / area;
+
+  const f = 0.022; // factor de fricción aproximado para PVC
+  const g = 9.81; // gravedad
+
+  const hf_rozamiento = f * (longitud_tuberia / diametro_m) * (Math.pow(velocidad, 2) / (2 * g));
+  const hf_codos = numero_codos * 0.5;
+
+  const cdt = altura_vertical + hf_rozamiento + hf_codos;
+  return parseFloat(cdt.toFixed(2));
 }
 
 function calcularCaudalEstimado({ largo, ancho, altura, tiempo_deseado_minutos }) {
@@ -94,11 +122,20 @@ async function asesoriaTecnica(req, res) {
     return error("Debe ingresar caudal o datos del tanque");
   }
 
-  const cdt = calcularCDT({ altura_vertical, longitud_tuberia, numero_codos, diametro_tuberia });
   let caudal_estimado = caudal_manual_lmin;
+
   if (!caudal_estimado && dimensiones_tanque && tiempo_deseado_minutos) {
     caudal_estimado = calcularCaudalEstimado({ ...dimensiones_tanque, tiempo_deseado_minutos });
   }
+
+  const cdt = calcularCDT({
+    altura_vertical,
+    longitud_tuberia,
+    numero_codos,
+    diametro_tuberia,
+    caudal_lmin: caudal_estimado
+  });
+
 
   try {
     const productos = await obtenerTodosLosProductos();
@@ -136,15 +173,18 @@ async function asesoriaTecnica(req, res) {
     console.log("👉 Fase solicitada:", fase);
 
     const bombasCoincidentes = bombasValidas.filter(b =>
-      b.aplicaciones.includes(aplicacion) &&
+      b.aplicaciones.some(a => normalizarTexto(a) === normalizarTexto(aplicacion)) &&
       b.voltaje === voltaje &&
       normalizarTexto(b.fase) === normalizarTexto(fase)
     );
 
     const bombasDeRespaldo = bombasValidas.filter(b =>
+      b.aplicaciones.some(a => normalizarTexto(a) === normalizarTexto(aplicacion)) &&
       b.voltaje === voltaje &&
       normalizarTexto(b.fase) === normalizarTexto(fase)
     );
+
+
 
     const bombasUsadas = bombasCoincidentes.length > 0 ? bombasCoincidentes : bombasDeRespaldo;
     const tipoRecomendacion = bombasCoincidentes.length > 0 ? "coincidentes" : "de respaldo";
@@ -154,10 +194,6 @@ async function asesoriaTecnica(req, res) {
       let prioridad = 3;
 
       const caudalInterpolado = estimarCaudal(cdt, bomba);
-
-       
-
-
 
       const caudalCumpleMaximo = caudal_estimado <= bomba.caudal_maximo_lmin;
 

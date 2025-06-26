@@ -25,7 +25,7 @@ function parseAtributosWoo(attributes) {
 
     switch (nombre) {
       case "aplicación":
-        atributos.aplicaciones = options.map(mapAplicacion);
+        atributos.aplicaciones = options; // Mantiene exactamente los textos de WooCommerce
         break;
       case "voltaje":
         atributos.voltaje = valor;

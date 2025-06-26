@@ -145,7 +145,7 @@
       doc.text(`CELULAR: ${datosCliente.celular}`, marginX + 90, y);
       y += 7;
 
-      doc.text(`DIRECCIÓN: ${datosCliente.direccion}`, marginX, y);
+      doc.text(`CORREO: ${datosCliente.correo}`, marginX, y);
       doc.text(`NOMBRE: ${datosCliente.nombre}`, marginX + 90, y);
       y += 7;
 
@@ -369,14 +369,14 @@
 
   doc.addImage(logoBase64, 'JPEG', 0, 0, pageWidth, pageHeight);
 
-  let y = 40;
+  let y = 48;
   const marginX = 15; 
 
   doc.setFont('Helvetica', 'bold');
-  doc.setFontSize(18);
-  doc.setTextColor('#003366');
-  doc.text("Recomendación de Bombas de Agua", pageWidth / 2, y, { align: 'center' });
-  y += 12;
+  doc.setFontSize(14);
+  doc.setTextColor('#116892');
+  doc.text("COTIZACIÓN: Asesoría Técnica para Bombas de Agua", marginX, y);
+  y += 8;
 
   doc.setDrawColor('#003366');
   doc.setLineWidth(0.8);
@@ -385,26 +385,25 @@
 
   // Imprime datos del cliente arriba
   doc.setFontSize(12);
-  doc.setTextColor('#000');
+  doc.setTextColor('#116892');
 
-  // Primera línea: NIT y celular
-  doc.text(`NIT: ${datosCliente.nit}`, marginX, y);
-  doc.text(`CELULAR: ${datosCliente.celular}`, marginX + 90, y); // Ajusta 90 según el ancho de tu hoja y tus datos
+  // Primera fila: solo Nombre centrado a la izquierda
+  doc.text(`Nombre: ${datosCliente.nombre}`, marginX, y);
   y += 7;
 
-  // Segunda línea: Nombre y Dirección
-  doc.text(`Dirección: ${datosCliente.direccion}`, marginX, y);
-  doc.text(`Nombre: ${datosCliente.nombre}`, marginX + 90, y); // Ajusta 90 según necesidad
+  // Segunda fila: Correo y Celular
+  doc.text(`Correo: ${datosCliente.correo}`, marginX, y);
+  doc.text(`CELULAR: ${datosCliente.celular}`, marginX + 90, y); // Ajusta 90 si es necesario
   y += 7;
 
-  doc.setDrawColor('#003366');
+  doc.setDrawColor('#116892');
   doc.setLineWidth(0.8);
   doc.line(marginX, y, pageWidth - marginX, y);
   y += 10;
 
   doc.setFont('Helvetica', 'normal');
   doc.setFontSize(12);
-  doc.setTextColor('#000000');
+  doc.setTextColor('#116892');
   // CDT a la izquierda
   doc.text(`CDT Calculada: ${resultados.CDT_calculada} m`, marginX, y);
 
@@ -417,7 +416,7 @@
   doc.text(`NOTA TÉCNICA: ${resultados.resultados[0].nota_tecnica}`, marginX, y);
   y += 8;
 
-  doc.setDrawColor('#003366');
+  doc.setDrawColor('#116892');
   doc.setLineWidth(0.8);
   doc.line(marginX, y, pageWidth - marginX, y);
   y += 5;
@@ -493,7 +492,7 @@
 
   const fecha = new Date().toLocaleDateString();
   doc.setFontSize(10);
-  doc.setTextColor('#666666');
+  doc.setTextColor('#116892');
   doc.text(`Fecha de emisión: ${fecha}`, marginX, pageHeight - 10);
   doc.text('Asesoría técnica de selección de bombas © 2025', pageWidth - marginX, pageHeight - 10, { align: 'right' });
 
@@ -570,11 +569,12 @@
         </div>
         <select bind:value={aplicacion} required class="w-full border rounded px-3 py-2">
           <option value="" disabled selected>Seleccione una opción</option>
-          <option value="cisterna_tanque">Cisterna con tanque elevado</option>
-          <option value="pozo_tanque">Pozo con tanque elevado</option>
-          <option value="pozo_hidroneumatico">Pozo con sistema hidroneumático</option>
-          <option value="cisterna_hidroneumatico">Cisterna con sistema hidroneumático</option>
+          <option value="Cisterna a tanque elevado">Cisterna con tanque elevado</option>
+          <option value="Pozo a tanque elevado">Pozo con tanque elevado</option>
+          <option value="Pozo con sistema hidroneumático">Pozo con sistema hidroneumático</option>
+          <option value="Cisterna con sistema hidroneumático">Cisterna con sistema hidroneumático</option>
         </select>
+
       </div>
 
       {#if aplicacion}
@@ -701,7 +701,7 @@
       {/if}
 
       {#if diametro_tuberia_pulgadas}
-        {#if aplicacion === 'cisterna_tanque' || aplicacion === 'pozo_tanque'}
+        {#if aplicacion === 'Pozo a tanque elevado' || aplicacion === 'Cisterna a tanque elevado'}
           <div class="space-y-2">
             <label class="block font-medium" style="color: #116892; font-size: 1.375rem; display: inline-block;">Caudal Requerido (L/min)</label>
             <div class="flex items-center space-x-2">
@@ -720,18 +720,17 @@
 
             </div>
           </div>
-        {:else if aplicacion === 'pozo_hidroneumatico' || aplicacion === 'cisterna_hidroneumatico'}
+        {:else if aplicacion === 'Cisterna con sistema hidroneumático' || aplicacion === 'Pozo con sistema hidroneumático'}
           <div class="space-y-2">
             <label class="block font-medium" style="color: #116892; font-size: 1.375rem; display: inline-block;">Flujo Requerido (L/min)</label>
             <div class="flex items-center space-x-2">
               <input
                 type="number"
                 bind:value={caudal_manual}
-                class="border rounded px-3 py-2 w-full"
-                placeholder="Ingrese el flujo en L/min o calcúlelo"
+                class="w-75 border px-2 h-9 text-sm rounded"
+                placeholder="Ingrese el caudal en L/min o calcúlelo"
               />
               <button
-                type="button"
                 on:click={() => mostrarModalFlujo = true}
                 class="bg-[#116892] hover:bg-[#3a8bbf] text-white font-bold px-4 py-2 rounded"
               >

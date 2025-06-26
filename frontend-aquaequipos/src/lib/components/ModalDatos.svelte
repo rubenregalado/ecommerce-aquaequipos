@@ -23,21 +23,17 @@
     <div class="modal-content" on:click|stopPropagation>
       <h2 class="modal-title">Datos para la cotización</h2>
       <form on:submit|preventDefault={submitForm} class="form">
-        <label>
-          NIT
-          <input type="text" bind:value={nit} placeholder="Ingrese NIT" />
-        </label>
-        <label>
-          Celular
-          <input type="tel" bind:value={celular} placeholder="Ingrese número celular" />
-        </label>
-        <label>
+         <label>
           Nombre *
           <input type="text" bind:value={nombre} required placeholder="Nombre completo" />
         </label>
         <label>
+          Celular
+          <input type="tel" bind:value={celular} required placeholder="Ingrese número celular" />
+        </label>
+        <label>
           Correo
-          <input type="email" bind:value={correo} placeholder="correo@dominio.com" />
+          <input type="email" bind:value={correo} required placeholder="correo@dominio.com" />
         </label>
         <div class="buttons">
           <button type="submit" class="btn-primary">💧 Generar PDF</button>
