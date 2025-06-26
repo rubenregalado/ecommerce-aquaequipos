@@ -69,6 +69,21 @@
   let diametro_tuberia_pulgadas = "";
   let caudal_manual = "";
 
+  // Para la barra de progreso
+  $: pasosTotales = 8;
+  $: pasosCompletados = [
+    aplicacion,
+    fase,
+    voltaje,
+    altura_vertical,
+    longitud_tuberia,
+    numero_codos,
+    diametro_tuberia_pulgadas,
+    caudal_manual
+  ].filter(v => v !== '' && v !== null && v !== undefined).length;
+
+  $: progreso = Math.round((pasosCompletados / pasosTotales) * 100);
+
   // Para cálculo por dimensiones
   let dimensiones = { altura: 0, ancho: 0, largo: 0, tiempo: 0 };
 
@@ -533,6 +548,13 @@
     >
 
     <div class="w-full min-w-[50%] max-w-4xl mx-auto bg-blue-50 rounded-lg p-6 shadow-md">
+      <!-- BARRA DE PROGRESO -->
+      <div class="w-full bg-gray-200 rounded-full h-4 mb-4 overflow-hidden">
+        <div
+          class="bg-[#116892] h-full transition-all duration-500"
+          style="width: {progreso}%"
+        ></div>
+      </div>
       <!-- FORMULARIO -->
       <form class="space-y-4" on:submit={enviarFormulario}>
         <div class="mb-4">
@@ -781,7 +803,7 @@
 
               <p class="text-sm text-gray-700 mb-1 italic">{bomba.nota_tecnica}</p>
               <p class="text-sm mt-1">
-                🔧 <strong>{bomba.rendimiento_sugerido.caudal_estimado_a_esa_altura_lmin} L/min</strong> a <strong>{resultados.CDT_calculada} m</strong><br>
+                🔧 <strong>El rendimiento estimado de esta bomba es de: </strong> {bomba.rendimiento_sugerido.caudal_estimado_a_esa_altura_lmin} L/min a {resultados.CDT_calculada} m<br>
                 🎯 <strong>Rango ideal:</strong> {bomba.rendimiento_sugerido.caudal_aproximado_lmin} L/min a {bomba.rendimiento_sugerido.altura_aproximada_m} m
               </p>
 
