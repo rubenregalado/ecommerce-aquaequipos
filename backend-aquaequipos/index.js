@@ -4,16 +4,11 @@ const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ✅ Configuración segura y estable de CORS
-const corsOptions = {
+// ✅ Configuración segura de CORS para Vercel
+app.use(cors({
   origin: 'https://ecommerce-aquaequipos.vercel.app',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type'],
   credentials: true
-};
-
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions)); // Manejo de preflight OPTIONS
+}));
 
 app.use(express.json());
 
@@ -28,10 +23,12 @@ app.use("/api/asesoria", calculoRoute);
 app.use("/api/productos", productosRoute);
 app.use('/api/chatbot', chatbotRouter);
 
+// Ruta base
 app.get('/', (req, res) => {
   res.send('API de AquaEquipos funcionando 🛠️');
 });
 
+// Iniciar servidor
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });
