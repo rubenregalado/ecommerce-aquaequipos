@@ -43,7 +43,7 @@
 
     onMount(async () => {
       try {
-        const res = await fetch('http://localhost:3000/productos');
+        const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/productos`);
         if (!res.ok) throw new Error('No se pudieron cargar los productos');
         productos = await res.json();
       } catch (e) {
@@ -53,6 +53,7 @@
         cargandoProductos = false;
       }
     });
+
 
   let mostrarModalFriccion = false;
   let mostrarModalFlujo = false;
@@ -258,7 +259,7 @@
   formData.append('celular', datosCliente?.celular || 'sincorreo@ejemplo.com');
 
   try {
-    const res = await fetch('http://localhost:3000/api/cotizacion/enviar-cotizacion', {
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/cotizacion/enviar-cotizacion`, {
       method: 'POST',
       body: formData
     });
@@ -319,11 +320,12 @@
     }
 
     try {
-      const res = await fetch("http://localhost:3000/api/asesoria", {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/asesoria`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
+
 
       const data = await res.json();
       if (res.ok) {
