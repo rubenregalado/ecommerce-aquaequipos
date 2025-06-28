@@ -4,11 +4,28 @@ const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ✅ Configuración segura de CORS para Vercel
-app.use(cors({
-  origin: 'https://ecommerce-aquaequipos.vercel.app',
+// ✅ Configuración de CORS para Vercel y localhost
+const allowedOrigins = [
+  'https://ecommerce-aquaequipos.vercel.app',
+  'http://localhost:5173'
+];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.warn('Origen bloqueado por CORS:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type'],
   credentials: true
-}));
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // Preflight para POST desde fetch()
 
 app.use(express.json());
 
