@@ -6,7 +6,7 @@ const PORT = process.env.PORT || 3000;
 
 // ✅ Configuración de CORS para Vercel y localhost
 const allowedOrigins = [
-  'https://ecommerce-aquaequipos.vercel.app',
+  'https://ecommerce-aquaequipos-jet.vercel.app',
   'http://localhost:5173'
 ];
 
