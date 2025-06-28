@@ -11,8 +11,21 @@ const api = new WooCommerceRestApi({
 
 router.get("/", async (req, res) => {
   try {
-    const response = await api.get("products");
-    res.json(response.data);
+    const response = await api.get("products", {
+      per_page: 100, // Puedes ajustar este número según tus necesidades
+      _fields: "id,name,price,regular_price,images"
+    });
+
+    // Si solo quieres devolver la imagen principal y el precio, puedes filtrar aquí:
+    const productos = response.data.map(producto => ({
+      id: producto.id,
+      name: producto.name,
+      price: producto.price,
+      regular_price: producto.regular_price,
+      image: producto.images && producto.images.length > 0 ? producto.images[0].src : null
+    }));
+
+    res.json(productos);
   } catch (error) {
     console.error("Error al obtener productos:", error.response?.data || error.message);
     res.status(500).json({ error: "Error al obtener productos", detalle: error.response?.data || error.message });
@@ -20,3 +33,4 @@ router.get("/", async (req, res) => {
 });
 
 module.exports = router;
+
