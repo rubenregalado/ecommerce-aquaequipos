@@ -6,7 +6,7 @@ const PORT = process.env.PORT || 3000;
 
 // ✅ Configuración segura de CORS para Vercel
 app.use(cors({
-  origin: 'https://ecommerce-aquaequipos.vercel.app',
+  origin: 'https://ecommerce-aquaequipos-jet.vercel.app',
   credentials: true
 }));
 
