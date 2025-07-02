@@ -61,6 +61,8 @@
   let mostrarModalResultados = false
 
   
+
+
   let aplicacion = "";
   let fase = "";
   let voltaje = "";
@@ -753,7 +755,7 @@
             </svg>
             Cargando...
           {:else}
-            CONSULTAR RECOMENDACIONES
+            REALIZAR CONSULTA DE RECOMENDACIONES
           {/if}
         </button>
       </div>
